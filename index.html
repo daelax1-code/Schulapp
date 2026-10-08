@@ -46,7 +46,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100%}
 button,input,select,textarea{font:inherit;color:inherit}
-.ic{font-family:"Material Symbols Rounded";font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;font-variation-settings:"FILL" 0,"wght" 500;-webkit-font-feature-settings:"liga";font-feature-settings:"liga";user-select:none}
+.ic{font-family:"Material Symbols Rounded";font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;font-variation-settings:"FILL" 0,"wght" 500;-webkit-font-feature-settings:"liga";font-feature-settings:"liga";user-select:none;width:1em;overflow:hidden;flex:none}
 .ic.f{font-variation-settings:"FILL" 1,"wght" 500}
 
 .app{max-width:1100px;margin:0 auto;padding:12px 16px 120px}
@@ -139,6 +139,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tt .h.today{color:var(--primary)}
 .tt .time{font-size:12px;color:var(--on-var);padding:6px 4px;text-align:right}
 .tt .cell{min-height:52px;border-radius:12px;border:0;background:var(--s1);cursor:pointer;padding:6px;font-size:13px;font-weight:700;text-align:left;color:#fff;overflow:hidden}
+.top .iconbtn{flex:none}
 .tt .cell.empty{color:var(--outline);background:var(--s1)}
 .tt .cell.now{outline:3px solid var(--primary)}
 
@@ -215,6 +216,28 @@ button,input,select,textarea{font:inherit;color:inherit}
 .ai-out{white-space:pre-wrap;background:var(--s2);border-radius:16px;padding:12px 14px;font-size:14px;margin:0 0 14px;min-height:20px}
 .lesson-off .t{text-decoration:line-through;opacity:.55}
 .cell small{display:block;font-weight:500;opacity:.85;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Assistant */
+.ai-btn{background:var(--tertiary-c);color:var(--on-tertiary-c)}
+.msgs{display:flex;flex-direction:column;gap:8px;padding:12px 0;overflow-y:auto;max-height:58vh;min-height:30vh}
+.msg{max-width:88%;padding:10px 14px;border-radius:20px;white-space:pre-wrap;font-size:15px;overflow-wrap:anywhere}
+.msg.u{align-self:flex-end;background:var(--primary);color:var(--on-primary);border-bottom-right-radius:6px}
+.msg.a{align-self:flex-start;background:var(--s3);border-bottom-left-radius:6px}
+.msg.a.wait{color:var(--on-var);font-style:italic}
+.act{align-self:flex-start;font-size:13px;font-weight:650;background:var(--ok-c);color:var(--ok);padding:5px 10px;border-radius:10px;display:inline-flex;gap:6px;align-items:center}
+.composer{display:flex;gap:8px;align-items:flex-end;background:var(--s3);border-radius:28px;padding:6px 6px 6px 18px}
+.composer:focus-within{outline:3px solid var(--primary)}
+.composer textarea{flex:1;border:0;background:none;resize:none;padding:10px 0;max-height:120px;min-height:44px}
+.composer textarea:focus-visible{outline:none}
+.send{background:var(--primary);color:var(--on-primary);flex:none}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.sugg button{border:1px solid var(--outline-v);background:none;border-radius:14px;padding:9px 12px;cursor:pointer;font-weight:600;text-align:left}
+.banner{display:flex;align-items:center;gap:10px;width:100%;border:0;cursor:pointer;text-align:left;background:var(--tertiary-c);color:var(--on-tertiary-c);border-radius:18px;padding:12px 14px;font-weight:650;margin-bottom:10px}
+.colors input[type=color]{width:36px;height:36px;border:2px dashed var(--outline);border-radius:50%;padding:0;background:none;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.minirow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.photo-prev{max-width:100%;max-height:220px;border-radius:16px;display:block;margin:0 auto 12px}
+@media (max-width:560px){.synct{display:none}}
+.dayrow{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center;margin:4px 0;font-size:14px}
 @media (max-width:560px){
   .top h1{font-size:28px}
   .hero{grid-template-columns:1fr;justify-items:start}
@@ -246,7 +269,9 @@ const r1=x=>x==null?"–":(Math.round(x*10)/10).toLocaleString("de-DE",{minimumF
 const noteFromPts=p=>p==null?null:Math.max(1,(17-p)/3);
 const HJS=["Q1","Q2","Q3","Q4"];
 const HJ_LABEL={Q1:"12/1",Q2:"12/2",Q3:"13/1",Q4:"13/2"};
-const COLORS=["#7A4B2F","#2F7D3A","#1F4FA3","#B8431E","#A3341C","#C2541F","#3B23B5","#1E5A8C","#7B2B95","#5A3A3A","#2B2E8C","#00796B","#AD1457","#6D6A00"];
+const COLORS=["#7A4B2F","#2F7D3A","#1F4FA3","#B8431E","#A3341C","#C2541F","#3B23B5","#1E5A8C","#7B2B95","#5A3A3A","#2B2E8C","#00796B","#AD1457","#6D6A00",
+"#C62828","#D84315","#EF6C00","#F9A825","#9E9D24","#558B2F","#1B5E20","#00695C","#00838F","#0277BD","#0D47A1","#283593","#4527A0","#6A1B9A","#880E4F","#C2185B","#EC407A","#4E342E","#37474F","#546E7A","#212121","#80CBC4","#FFAB91","#CE93D8"];
+function ink(hex){const h=String(hex||"").replace("#","");if(h.length!==6)return "#fff";const [r,g,b]=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255).map(c=>c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4));return (.2126*r+.7152*g+.0722*b)>.36?"#1C1B21":"#fff"}
 
 /* ---------- default data (from your screenshots) ---------- */
 function defaults(){
@@ -489,9 +514,9 @@ document.addEventListener("click",e=>{
   const n=e.target.closest("[data-nav]");if(n){view=n.dataset.nav;if(view==="faecher")sub.faecher=null;if(view==="mehr")sub.mehr="menu";render();window.scrollTo(0,0);return}
   const a=e.target.closest("[data-act]");if(a){e.preventDefault();ACT[a.dataset.act]?.(a.dataset,a)}
 });
-function renderSync(){const el=$("#sync");if(el)el.innerHTML=`<span class="ic" style="font-size:16px">${syncState==="synchronisiert"?"cloud_done":"smartphone"}</span>${syncState==="synchronisiert"?"Gespeichert":"Auf diesem Gerät"}`}
+function renderSync(){const el=$("#sync");if(el){const ok=syncState==="synchronisiert";el.innerHTML=`<span class="ic" style="font-size:16px">${ok?"cloud_done":"smartphone"}</span><span class="synct">${ok?"Gespeichert":"Auf diesem Gerät"}</span>`}}
 function top(title,extra=""){
-  return `<div class="top"><h1>${esc(title)}</h1>${extra}<button class="chip-hj" data-act="hjSwitch" aria-label="Halbjahr wechseln"><span class="ic" style="font-size:18px">swap_horiz</span>${HJ_LABEL[state.settings.hj]}</button></div>`;
+  return `<div class="top"><h1>${esc(title)}</h1>${extra}<button class="iconbtn ai-btn" data-act="chat" aria-label="Assistent öffnen"><span class="ic f">auto_awesome</span></button><button class="chip-hj" data-act="hjSwitch" aria-label="Halbjahr wechseln"><span class="ic" style="font-size:18px">swap_horiz</span>${HJ_LABEL[state.settings.hj]}</button></div>`;
 }
 function fab(label,act){const f=$("#fab");if(!label){f.hidden=true;return}f.hidden=false;$("#fabl").textContent=label;f.onclick=()=>ACT[act]({})}
 function render(){
@@ -500,7 +525,7 @@ function render(){
   $("#app").innerHTML=V();
   renderSync();
 }
-function tag(s){return s?`<span class="tag" style="background:${s.color}">${esc(s.short)}</span>`:`<span class="tag" style="background:var(--outline)">?</span>`}
+function tag(s){return s?`<span class="tag" style="background:${s.color};color:${ink(s.color)}">${esc(s.short)}</span>`:`<span class="tag" style="background:var(--outline)">?</span>`}
 function ptsBox(p){if(p==null)return `<span class="pts none">–</span>`;return `<span class="pts ${p>=10?"good":p<5?"bad":""}">${p}</span>`}
 
 /* ---------- views ---------- */
@@ -514,6 +539,7 @@ function vCockpit(){
   const graded=state.exams.filter(e=>e.hj===hj&&e.points!=null).length;
   const holTxt=hol?(daysUntil(hol.from)<=0?`${esc(hol.name)} – genieß sie`:`${esc(hol.name)} in ${daysUntil(hol.from)} Tagen`):"Keine Ferien eingetragen";
   const lessons=todayLessons(), ts=todaySessions(), sk=streak();
+  const missing=state.exams.filter(e=>e.points==null&&daysUntil(e.date)<0).length;
   return top("Cockpit",`<span class="sync" id="sync"></span>`)+`
   <section class="hero">
     <div class="cookie" aria-label="Durchschnitt ${r1(a)} Punkte">
@@ -531,6 +557,7 @@ function vCockpit(){
   </section>
   <div class="grid">
     <div class="card alt"><h3><span class="ic">event_upcoming</span><span class="sp">Nächste Prüfungen</span><button class="btn text" data-act="goPruef">Alle</button></h3>
+      ${missing?`<button class="banner" data-act="goMissing"><span class="ic">edit_note</span><span style="flex:1">${missing} ${missing===1?"Note fehlt":"Noten fehlen"} noch</span><span class="ic">chevron_right</span></button>`:""}
       ${up.length?`<div class="list">${up.slice(0,4).map(examItem).join("")}</div>`:`<div class="empty">Keine Prüfungen geplant.<br><button class="btn tonal" data-act="newExam"><span class="ic">add</span>Prüfung eintragen</button></div>`}
     </div>
     <div class="card"><h3><span class="ic">task_alt</span><span class="sp">Offene Aufgaben</span><button class="btn text" data-act="newHw">Neu</button></h3>
@@ -541,10 +568,30 @@ function vCockpit(){
       ${ts.length?`<div class="list" style="margin-bottom:10px">${ts.map(sessItem).join("")}</div>`:`<p class="small muted" style="margin:0 0 10px">Heute steht kein Lernschritt an. Der Lernplan entsteht automatisch aus deinen Prüfungen.</p>`}
       <button class="btn filled" data-act="focus"><span class="ic">timer</span>${timer?"Timer öffnen":"Fokus starten"}</button>
     </div>
-    <div class="card alt"><h3><span class="ic">schedule</span><span class="sp">Heute</span><button class="btn text" data-nav="plan">Stundenplan</button></h3>
-      ${lessons.length?`<div class="list">${lessons.map(l=>`<button class="item ${l.off?"lesson-off":""}" data-act="cancelLesson" data-i="${l.i}" aria-label="${esc(subj(l.sid)?.name)}: Entfall umschalten">${tag(subj(l.sid))}<div class="main"><div class="t">${esc(subj(l.sid)?.name)}</div><div class="s">${l.start}–${l.end}${l.room?" · Raum "+esc(l.room):""}${l.teacher?" · "+esc(l.teacher):""}${l.off?" · entfällt":""}</div></div>${l.now&&!l.off?'<span class="pill" style="background:var(--primary);color:var(--on-primary)">Jetzt</span>':""}</button>`).join("")}</div><p class="small muted" style="margin:8px 0 0">Antippen, um eine Stunde als ausgefallen zu markieren.</p>`:`<div class="empty">Heute keine Stunden mehr.</div>`}
+    <div class="card alt"><h3><span class="ic">schedule</span><span class="sp">${lessons.length?"Heute":nextDayTitle()}</span><button class="btn text" data-nav="plan">Stundenplan</button></h3>
+      ${lessons.length?`<div class="list">${lessons.map(l=>`<button class="item ${l.off?"lesson-off":""}" data-act="cancelLesson" data-i="${l.i}" aria-label="${esc(subj(l.sid)?.name)}: Entfall umschalten">${tag(subj(l.sid))}<div class="main"><div class="t">${esc(subj(l.sid)?.name)}</div><div class="s">${l.start}–${l.end}${l.room?" · Raum "+esc(l.room):""}${l.teacher?" · "+esc(l.teacher):""}${l.off?" · entfällt":""}</div></div>${l.now&&!l.off?'<span class="pill" style="background:var(--primary);color:var(--on-primary)">Jetzt</span>':""}</button>`).join("")}</div><p class="small muted" style="margin:8px 0 0">Antippen, um eine Stunde als ausgefallen zu markieren.</p>`:nextDayHtml()}
     </div>
   </div>`;
+}
+function inHoliday(d){return state.settings.holidays.some(h=>h.from<=d&&d<=(h.to||h.from))}
+function nextSchoolDay(){const d=today();for(let i=1;i<30;i++){d.setDate(d.getDate()+1);const w=d.getDay();if(w>=1&&w<=5&&!inHoliday(iso(d)))return iso(d)}return null}
+function nextDayTitle(){const d=nextSchoolDay();if(!d)return "Als Nächstes";return daysUntil(d)===1?"Morgen":parse(d).toLocaleDateString("de-DE",{weekday:"long"})}
+function nextDayHtml(){
+  const d=nextSchoolDay();if(!d)return `<div class="empty">Keine Schultage in Sicht.</div>`;
+  const w=parse(d).getDay();
+  const ls=state.timetable.slots.map((sl,i)=>({...sl,sid:state.timetable.cells[w+"-"+i]})).filter(l=>l.sid&&subj(l.sid));
+  const hw=state.homework.filter(h=>!h.done&&h.due===d), ex=state.exams.filter(e=>e.date===d);
+  if(!ls.length&&!hw.length&&!ex.length)return `<div class="empty">Für ${daysUntil(d)===1?"morgen":fmtDate(d)} ist nichts eingetragen.${Object.keys(state.timetable.cells).length?"":` Trag deinen Stundenplan ein oder lies ihn aus einem Foto.<br><button class="btn tonal" data-act="ttPhoto"><span class="ic">photo_camera</span>Aus Foto erstellen</button>`}</div>`;
+  const uniq=[...new Set(ls.map(l=>l.sid))];
+  return `${ls.length?`<div class="small muted" style="margin-bottom:6px">${ls[0].start}–${ls[ls.length-1].end} · ${ls.length} Stunden · einpacken:</div><div class="minirow">${uniq.map(id=>tag(subj(id))).join("")}</div>`:""}
+  ${ex.length?`<div class="list" style="margin-bottom:8px">${ex.map(examItem).join("")}</div>`:""}
+  ${hw.length?`<div class="small muted" style="margin:4px 0 6px">Fällig:</div><div class="list">${hw.map(hwItem).join("")}</div>`:""}`;
+}
+function nextLessonDate(sid){
+  const d=today();
+  for(let i=1;i<=28;i++){d.setDate(d.getDate()+1);const w=d.getDay();if(w<1||w>5||inHoliday(iso(d)))continue;
+    if(state.timetable.slots.some((_,k)=>state.timetable.cells[w+"-"+k]===sid))return iso(d)}
+  return null;
 }
 function todayLessons(){
   const d=new Date().getDay();if(d<1||d>5)return [];
@@ -577,7 +624,7 @@ function vPlan(){
     const [a,b]=[sl.start,sl.end].map(t=>{const[h,m]=t.split(":").map(Number);return h*60+m});
     g+=`<div class="time">${i+1}.<br>${sl.start}</div>`;
     for(let d=1;d<=5;d++){const s=subj(tt.cells[d+"-"+i]);const now=wd===d&&nowM>=a&&nowM<b;const mt=tt.meta[d+"-"+i]||{};
-      g+=`<button class="cell ${s?"":"empty"} ${now?"now":""}" style="${s?"background:"+s.color:""}" data-act="cell" data-k="${d}-${i}" aria-label="${days[d-1]} ${i+1}. Stunde">${s?esc(s.short)+(mt.room?`<small>${esc(mt.room)}</small>`:""):"+"}</button>`}
+      g+=`<button class="cell ${s?"":"empty"} ${now?"now":""}" style="${s?"background:"+s.color+";color:"+ink(s.color):""}" data-act="cell" data-k="${d}-${i}" aria-label="${days[d-1]} ${i+1}. Stunde">${s?esc(s.short)+(mt.room?`<small>${esc(mt.room)}</small>`:""):"+"}</button>`}
   });
   g+="</div>";
   // agenda: next 14 days of exams, homework, events
@@ -589,7 +636,7 @@ function vPlan(){
   const soon=items.filter(x=>{const n=daysUntil(x.d);return n>=0&&n<=21}).sort((a,b)=>a.d.localeCompare(b.d));
   const grouped={};soon.forEach(x=>(grouped[x.d]=grouped[x.d]||[]).push(x.html));
   return top("Plan")+`
-  <div class="card" style="margin-bottom:12px"><h3><span class="ic">view_week</span><span class="sp">Stundenplan</span><button class="btn text" data-act="ttSettings">Zeiten</button></h3>
+  <div class="card" style="margin-bottom:12px"><h3><span class="ic">view_week</span><span class="sp">Stundenplan</span><button class="btn text" data-act="ttPhoto"><span class="ic" style="font-size:20px">photo_camera</span>Foto</button><button class="btn text" data-act="ttSettings">Zeiten</button></h3>
     <div class="tt-wrap">${g}</div><p class="small muted" style="margin:8px 0 0">Tippe auf ein Feld, um ein Fach einzutragen.</p></div>
   <div class="card alt"><h3><span class="ic">date_range</span><span class="sp">Die nächsten 3 Wochen</span><button class="btn text" data-act="ics"><span class="ic" style="font-size:20px">ios_share</span>Export</button></h3>
     ${Object.keys(grouped).length?`<div class="tl">${Object.entries(grouped).map(([d,h])=>`<div class="day">${fmtLong(d)}</div><div class="list">${h.join("")}</div>`).join("")}</div>`:`<div class="empty">In den nächsten drei Wochen steht nichts an.</div>`}
@@ -615,7 +662,7 @@ function vFach(id){
     ${ex.length?`<div class="list">${ex.map(examItem).join("")}</div>`:`<div class="empty small">Keine Leistungen in diesem Halbjahr.</div>`}</div>`}).join("");
   const big=state.settings.bigWeight,sm=state.settings.smallWeight;
   return `<div class="top"><button class="iconbtn" data-act="backSubj" aria-label="Zurück"><span class="ic">arrow_back</span></button><h1 style="font-size:26px">${esc(s.name)}</h1><button class="iconbtn" data-act="editSubj" data-id="${id}" aria-label="Fach bearbeiten"><span class="ic">edit</span></button></div>
-  <div class="abi-top"><div class="stat big" style="background:${s.color};color:#fff"><div class="k">Gesamt-Ø</div><div class="v">${r1(subjectAvg(id))}</div></div>
+  <div class="abi-top"><div class="stat big" style="background:${s.color};color:${ink(s.color)}"><div class="k">Gesamt-Ø</div><div class="v">${r1(subjectAvg(id))}</div></div>
   <div class="stat"><div class="k">Note ca.</div><div class="v">${r1(noteFromPts(subjectAvg(id)))}</div></div></div>
   <div class="card alt" style="margin-bottom:10px"><h3><span class="ic">target</span><span class="sp">Zielrechner ${HJ_LABEL[state.settings.hj]}</span></h3>
     <label class="field" style="margin:0"><span>Mein Ziel: <b id="tg_v">${state.targets[id]??10}</b> Punkte im Halbjahr</span><input class="range" type="range" min="0" max="15" step="1" value="${state.targets[id]??10}" data-target="${id}"></label>
@@ -711,7 +758,7 @@ function vPruef(){
 function vAbi(){
   fab(null);
   const b1=block1(),b2=block2(),tot=b1.points!=null&&b2.points!=null?b1.points+b2.points:null;
-  const rows=state.subjects.map(s=>`<tr><th scope="row"><span class="sname" style="background:${s.color}" title="${esc(s.name)}">${esc(s.name)}</span></th>${HJS.map(h=>{const c=b1Cell(s.id,h);return `<td><button class="hjc ${c.inc?"inc":""} ${c.kind==="est"?"est":""} ${c.kind==="ovr"?"ovr":""}" data-act="b1cell" data-sid="${s.id}" data-hj="${h}" aria-label="${esc(s.name)} ${h}: ${c.pts??"leer"} Punkte${c.inc?", eingebracht":""}">${c.pts??"–"}${c.factor>1?`<sub>×${c.factor}</sub>`:""}</button></td>`}).join("")}</tr>`).join("");
+  const rows=state.subjects.map(s=>`<tr><th scope="row"><span class="sname" style="background:${s.color};color:${ink(s.color)}" title="${esc(s.name)}">${esc(s.name)}</span></th>${HJS.map(h=>{const c=b1Cell(s.id,h);return `<td><button class="hjc ${c.inc?"inc":""} ${c.kind==="est"?"est":""} ${c.kind==="ovr"?"ovr":""}" data-act="b1cell" data-sid="${s.id}" data-hj="${h}" aria-label="${esc(s.name)} ${h}: ${c.pts??"leer"} Punkte${c.inc?", eingebracht":""}">${c.pts??"–"}${c.factor>1?`<sub>×${c.factor}</sub>`:""}</button></td>`}).join("")}</tr>`).join("");
   const b2rows=state.abi.b2.map((e,i)=>{const r=b2Exam(e);const s=subj(e.subjectId);return `<button class="item" data-act="b2" data-i="${i}"><span class="pts" style="background:var(--secondary-c);color:var(--on-secondary-c)">P${i+1}</span><div class="main"><div class="t">${s?esc(s.name):"Fach wählen"}</div><div class="s">schriftl. ${e.w??"–"} · mündl. ${e.s??"–"}${r.est&&s?" · geschätzt":""}</div></div><span class="pts ${r.est?"none":""}" style="min-width:56px">${r.pts??"–"}</span></button>`}).join("");
   return `<div class="top">${back()}<h1>Abitur</h1></div>
   <div class="abi-top">
@@ -765,6 +812,11 @@ function vSettings(){
   <div class="card"><h3><span class="sp">Ferien</span><button class="btn text" data-act="newHol">Neu</button></h3>
     <div class="list">${st.holidays.sort((a,b)=>a.from.localeCompare(b.from)).map(h=>`<button class="item" data-act="editHol" data-id="${h.id}"><div class="main"><div class="t">${esc(h.name)}</div><div class="s">${fmtDate(h.from)} – ${fmtDate(h.to)}</div></div><span class="ic muted">edit</span></button>`).join("")||'<div class="empty">Keine Ferien eingetragen.</div>'}</div>
     <p class="small muted">Vorausgefüllt mit bayerischen Terminen – bitte mit deinem Schulkalender abgleichen.</p></div>
+  <div class="card"><h3>KI-Assistent</h3>
+    ${sampleCap?`<p class="small muted" style="margin:0">Läuft über dein Claude-Konto – nichts einzurichten.</p>`:`<p class="small muted" style="margin-top:0">In der installierten App braucht der Assistent einen eigenen API-Schlüssel von console.anthropic.com. Jede Frage kostet dann ein paar Zehntel Cent. Der Schlüssel bleibt nur auf diesem Gerät.</p>
+    <label class="field"><span>API-Schlüssel</span><input type="password" id="apikey" autocomplete="off" value="${esc(getKey())}" placeholder="sk-ant-…"></label>
+    <div class="actions" style="justify-content:flex-start"><button class="btn tonal" data-act="saveKey">Schlüssel speichern</button></div>`}
+  </div>
   <div class="card alt"><h3>Daten</h3>
     <p class="small muted" style="margin-top:0">${syncState==="synchronisiert"?"Deine Daten liegen privat in deinem Konto und sind auf all deinen Geräten verfügbar.":"Deine Daten werden auf diesem Gerät gespeichert."}</p>
     <div class="actions" style="justify-content:flex-start"><button class="btn tonal" data-act="exportData"><span class="ic">content_copy</span>Backup kopieren</button><button class="btn tonal" data-act="importData"><span class="ic">upload</span>Backup einfügen</button><button class="btn danger" data-act="resetData">Alles löschen</button></div></div>
@@ -834,9 +886,13 @@ function hwSheet(h){
   sheet(`<h2>${isNew?"Hausaufgabe eintragen":"Hausaufgabe bearbeiten"}</h2>
   <label class="field"><span>Was ist zu tun?</span><input id="h_t" value="${esc(h.title)}" placeholder="z. B. S. 42 Nr. 3a–c"></label>
   <label class="field"><span>Fach</span><select id="h_s">${subjOptions(h.subjectId)}</select></label>
-  <label class="field"><span>Fällig am</span><input type="date" id="h_d" value="${h.due||""}"></label>
+  <div class="field"><span>Fällig am</span><input type="date" id="h_d" value="${h.due||""}"><div class="chips" id="h_chips"></div></div>
   <div class="actions">${isNew?"":`<button class="btn danger" id="del">Löschen</button>`}<span class="grow"></span><button class="btn text" id="cx">Abbrechen</button><button class="btn filled" id="ok">Speichern</button></div>`,
   r=>{
+    const upd=()=>{const sid=r.querySelector("#h_s").value,nd=sid&&nextLessonDate(sid),c=r.querySelector("#h_chips");
+      c.innerHTML=(nd?`<button type="button" class="btn tonal" data-d="${nd}" style="min-height:36px;padding:6px 14px"><span class="ic" style="font-size:18px">event_repeat</span>Nächste Stunde · ${fmtDate(nd)}</button>`:"");
+      c.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{r.querySelector("#h_d").value=b.dataset.d;toast("Fällig zur nächsten Stunde")})};
+    r.querySelector("#h_s").onchange=upd;upd();
     r.querySelector("#cx").onclick=close;
     r.querySelector("#del")&&(r.querySelector("#del").onclick=()=>{state.homework=state.homework.filter(x=>x.id!==h.id);save();close();render();toast("Aufgabe gelöscht")});
     r.querySelector("#ok").onclick=()=>{
@@ -853,10 +909,11 @@ function subjSheet(s){
   sheet(`<h2>${isNew?"Fach anlegen":"Fach bearbeiten"}</h2>
   <label class="field"><span>Name</span><input id="s_n" value="${esc(s.name)}" placeholder="z. B. Chemie"></label>
   <label class="field"><span>Kürzel (max. 4 Zeichen)</span><input id="s_k" maxlength="4" value="${esc(s.short)}" placeholder="CHE"></label>
-  <div class="field"><span>Farbe</span><div class="colors" id="cols">${COLORS.map(c=>`<button type="button" style="background:${c}" data-c="${c}" aria-pressed="${c===s.color}" aria-label="Farbe ${c}"></button>`).join("")}</div></div>
+  <div class="field"><span>Farbe</span><div class="colors" id="cols">${COLORS.map(c=>`<button type="button" style="background:${c}" data-c="${c}" aria-pressed="${c===s.color}" aria-label="Farbe ${c}"></button>`).join("")}<input type="color" id="cpick" value="${s.color}" aria-label="Eigene Farbe wählen" title="Eigene Farbe"></div></div>
   <div class="actions">${isNew?"":`<button class="btn danger" id="del">Löschen</button>`}<span class="grow"></span><button class="btn text" id="cx">Abbrechen</button><button class="btn filled" id="ok">Speichern</button></div>`,
   r=>{
     r.querySelector("#cols").onclick=e=>{const b=e.target.closest("[data-c]");if(!b)return;s.color=b.dataset.c;r.querySelectorAll("#cols button").forEach(x=>x.setAttribute("aria-pressed",x===b))};
+    r.querySelector("#cpick").oninput=e=>{s.color=e.target.value;r.querySelectorAll("#cols button").forEach(x=>x.setAttribute("aria-pressed","false"))};
     r.querySelector("#cx").onclick=close;
     r.querySelector("#del")&&(r.querySelector("#del").onclick=()=>{if(!confirm("Fach und alle zugehörigen Noten löschen?"))return;state.subjects=state.subjects.filter(x=>x.id!==s.id);state.exams=state.exams.filter(e=>e.subjectId!==s.id);sub.faecher=null;save();close();render();toast("Fach gelöscht")});
     r.querySelector("#ok").onclick=()=>{
@@ -905,8 +962,188 @@ function focusSheet(presetSid){
   }
 }
 
+/* ---------- KI-Schicht: Claude-Konto (in Claude) oder eigener API-Schlüssel (installierte App) ---------- */
+const KEY_LS="schulapp.apikey";
+function getKey(){try{return localStorage.getItem(KEY_LS)||""}catch(e){return ""}}
+function aiReady(){return !!sampleCap||!!getKey()}
+function jpegB64(file,max=1600){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(img.src);res(c.toDataURL("image/jpeg",.85).split(",")[1])};img.onerror=()=>rej({code:"image_rejected"});img.src=URL.createObjectURL(file)})}
+async function ai(input,{tools,image,onText,signal,tier}={}){
+  if(sampleCap){
+    const lim=await sampleCap.limits().catch(()=>null);
+    const opt={onText,signal,modelTier:tier||"default"};
+    if(tools&&lim&&lim.tools)opt.tools=tools;
+    if(image){if(!lim||!lim.images)throw {code:"images_unavailable"};opt.images=image}
+    return (await sampleCap(input,opt)).text;
+  }
+  const key=getKey();if(!key)throw {code:"no_ai"};
+  const msgs=(typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content})));
+  if(image){const b64=await jpegB64(image);const last=msgs[msgs.length-1];last.content=[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:last.content}]}
+  for(let round=0;round<6;round++){
+    const body={model:"claude-haiku-5-5",max_tokens:2000,messages:msgs};
+    if(tools)body.tools=tools.map(t=>({name:t.name,description:t.description,input_schema:t.inputSchema||{type:"object",properties:{}}}));
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify(body)});
+    if(!res.ok){throw {code:res.status===401?"bad_key":res.status===429?"rate_limited":"api_error",message:await res.text().catch(()=>"")}}
+    const data=await res.json();
+    msgs.push({role:"assistant",content:data.content});
+    const text=data.content.filter(c=>c.type==="text").map(c=>c.text).join("");
+    const uses=data.content.filter(c=>c.type==="tool_use");
+    if(!uses.length||data.stop_reason!=="tool_use"){onText&&onText({text});return text}
+    if(text&&onText)onText({text});
+    const results=[];
+    for(const u of uses){let out;try{const t=tools.find(x=>x.name===u.name);if(!t)throw new Error("Unbekanntes Tool");out=await t.execute(u.input||{},{signal})}catch(e){out="Error: "+(e&&e.message||e)}
+      results.push({type:"tool_result",tool_use_id:u.id,content:typeof out==="string"?out:JSON.stringify(out)})}
+    msgs.push({role:"user",content:results});
+  }
+  throw {code:"api_error",message:"Zu viele Schritte"};
+}
+function aiErr(e){const c=e&&e.code;return c==="no_ai"?"Richte zuerst den Assistenten ein (Einstellungen → KI-Assistent).":c==="bad_key"?"Der API-Schlüssel stimmt nicht. Prüf ihn in den Einstellungen.":c==="not_granted"?"Du hast die KI für diese Seite nicht erlaubt.":c==="rate_limited"?"Gerade zu viele Anfragen – versuch es in einer Minute nochmal.":c==="images_unavailable"?"Bilder kann die KI hier gerade nicht lesen.":c==="cancelled"||(e&&e.name==="AbortError")?"Gestoppt.":navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Das hat nicht geklappt. Versuch es nochmal."}
+function findSubj(q){
+  const x=String(q||"").trim().toLowerCase();if(!x)return null;
+  const S=state.subjects;
+  const syn={mathe:"MAT",mathematik:"MAT",deutsch:"DEU",physik:"PHY",bio:"BIO",biologie:"BIO",geo:"GEO",erdkunde:"GEO",geschichte:"GES",kunst:"KU",latein:"LAT",reli:"REL",religion:"REL",wirtschaft:"WIR",politik:"WIR",wr:"WIR",mvk:"MVK"};
+  return S.find(s=>s.short.toLowerCase()===x)||S.find(s=>s.name.toLowerCase()===x)||(syn[x]&&S.find(s=>s.short===syn[x]))
+    ||S.filter(s=>s.name.toLowerCase().startsWith(x)).sort((a,b)=>a.name.length-b.name.length)[0]||S.find(s=>s.name.toLowerCase().includes(x))||null;
+}
+function snapshot(){
+  const hj=state.settings.hj,r=x=>x==null?null:Math.round(x*10)/10;
+  const days=["","Mo","Di","Mi","Do","Fr"],tt=[];
+  for(let d=1;d<=5;d++)state.timetable.slots.forEach((sl,i)=>{const sid=state.timetable.cells[d+"-"+i];if(sid&&subj(sid)){const m=state.timetable.meta[d+"-"+i]||{};tt.push(`${days[d]} ${i+1}. (${sl.start}-${sl.end}) ${subj(sid).short}${m.room?" R"+m.room:""}${m.teacher?" "+m.teacher:""}`)}});
+  const b1=block1(),b2=block2(),tot=b1.points!=null&&b2.points!=null?b1.points+b2.points:null;
+  return JSON.stringify({heute:iso(today())+" ("+fmtLong(iso(today()))+")",aktuelles_halbjahr:HJ_LABEL[hj],
+    berechnung:`Halbjahr = große Leistungen : Ø kleine im Verhältnis ${state.settings.bigWeight}:${state.settings.smallWeight}; Punkte 0-15`,
+    faecher:state.subjects.map(s=>({kuerzel:s.short,name:s.name,schnitt_aktuelles_hj:r(hjPoints(s.id,hj)),schnitt_gesamt:r(subjectAvg(s.id))})),
+    pruefungsarten:state.settings.types.map(t=>t.name+(t.big?" (groß)":" (klein)")),
+    pruefungen:state.exams.map(e=>({id:e.id,fach:subj(e.subjectId)?.short,art:type(e.type).name,datum:e.date,punkte:e.points,halbjahr:HJ_LABEL[e.hj],themen:e.note||undefined})),
+    hausaufgaben:state.homework.map(h=>({id:h.id,fach:subj(h.subjectId)?.short,was:h.title,faellig:h.due||undefined,erledigt:h.done})),
+    termine:state.events.map(v=>({titel:v.title,datum:v.date,uhrzeit:v.time||undefined})),
+    ferien:state.settings.holidays.map(h=>h.name+": "+h.from+" bis "+h.to),
+    stundenplan:tt,
+    abitur:{block1:b1.points,eingebracht:b1.count+"/40",block2:b2.points,gesamt:tot,note:tot!=null?abiGrade(tot):null,ist_prognose:b1.est||b2.est},
+    fehlzeiten:{eintraege:state.absences.length,unentschuldigt:state.absences.filter(a=>!a.excused).length},
+    lernen:{serie_tage:streak(),fokus_minuten_7_tage:focusWeek().reduce((a,x)=>a+x.min,0)}});
+}
+function makeTools(log){
+  const fs=q=>{const x=findSubj(q);if(!x)throw new Error("Fach '"+q+"' nicht gefunden. Vorhanden: "+state.subjects.map(z=>z.short+"="+z.name).join(", "));return x};
+  const dt=v=>{v=String(v||"");if(!/^\d{4}-\d{2}-\d{2}$/.test(v))throw new Error("Datum bitte als YYYY-MM-DD");return v};
+  const done=m=>{save();log(m);render()};
+  return [
+    {name:"hausaufgabe_eintragen",description:"Trägt eine neue Hausaufgabe ein. Gibt die id zurück.",inputSchema:{type:"object",properties:{fach:{type:"string",description:"Kürzel oder Name des Fachs"},was:{type:"string"},faellig:{type:"string",description:"YYYY-MM-DD"}},required:["was"]},
+      execute:i=>{const s=i.fach?fs(i.fach):null;const h={id:uid(),subjectId:s?s.id:"",title:String(i.was),due:i.faellig?dt(i.faellig):"",done:false};state.homework.push(h);done("Hausaufgabe eingetragen: "+h.title);return {ok:true,id:h.id}}},
+    {name:"hausaufgabe_abhaken",description:"Markiert eine Hausaufgabe (per id) als erledigt.",inputSchema:{type:"object",properties:{id:{type:"string"}},required:["id"]},
+      execute:i=>{const h=state.homework.find(x=>x.id===String(i.id));if(!h)throw new Error("Nicht gefunden");h.done=true;h.doneAt=iso(today());done("Abgehakt: "+h.title);return {ok:true}}},
+    {name:"pruefung_eintragen",description:"Trägt eine Prüfung ein (Klausur, Stegreifaufgabe, Abfrage, Referat …). Ordnet sie dem aktuellen Halbjahr zu.",inputSchema:{type:"object",properties:{fach:{type:"string"},art:{type:"string"},datum:{type:"string",description:"YYYY-MM-DD"},themen:{type:"string"}},required:["fach","datum"]},
+      execute:i=>{const s=fs(i.fach);const a=String(i.art||"").toLowerCase();const t=state.settings.types.find(x=>a&&x.name.toLowerCase().includes(a))||state.settings.types.find(x=>a&&a.includes(x.name.toLowerCase().slice(0,5)))||(/klausur|schulaufgabe/.test(a)||!a?state.settings.types.find(x=>x.big):state.settings.types.find(x=>!x.big));
+        const e={id:uid(),subjectId:s.id,type:t.id,date:dt(i.datum),points:null,hj:state.settings.hj,note:String(i.themen||"")};state.exams.push(e);done(`${t.name} in ${s.short} am ${fmtDate(e.date)} eingetragen`);return {ok:true,id:e.id}}},
+    {name:"note_eintragen",description:"Setzt die Punkte (0-15) einer vorhandenen Prüfung per id.",inputSchema:{type:"object",properties:{pruefung_id:{type:"string"},punkte:{type:"integer"}},required:["pruefung_id","punkte"]},
+      execute:i=>{const e=state.exams.find(x=>x.id===String(i.pruefung_id));if(!e)throw new Error("Prüfung nicht gefunden");const p=Math.round(+i.punkte);if(!(p>=0&&p<=15))throw new Error("Punkte 0-15");e.points=p;done(`${p} Punkte in ${subj(e.subjectId)?.short} eingetragen`);return {ok:true,neuer_schnitt_fach:hjPoints(e.subjectId,e.hj)}}},
+    {name:"termin_eintragen",description:"Trägt einen sonstigen Termin ein (Ausflug, Elternabend …).",inputSchema:{type:"object",properties:{titel:{type:"string"},datum:{type:"string"},uhrzeit:{type:"string",description:"HH:MM, optional"}},required:["titel","datum"]},
+      execute:i=>{const v={id:uid(),title:String(i.titel),date:dt(i.datum),time:String(i.uhrzeit||"")};state.events.push(v);done("Termin eingetragen: "+v.title);return {ok:true}}}
+  ];
+}
+
+/* ---------- Assistent-Chat ---------- */
+let chat=[], chatCtl=null;
+const SUGG=["Was steht diese Woche an?","Wie stehe ich gerade insgesamt?","Mach mir einen Lernplan für die nächste Klausur","Welche Note brauche ich im Abi-Schnitt für 1,5?"];
+function md(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^#+\s*/gm,"").replace(/^[-*]\s/gm,"• ")}
+function chatMsgs(){
+  const box=$("#chMsgs");if(!box)return;
+  if(!aiReady()){box.innerHTML=`<div class="msg a">Hier in der installierten App braucht der Assistent einen API-Schlüssel. Du findest das Feld unter Abitur & mehr → Einstellungen → KI-Assistent.</div><div class="sugg"><button data-go="settings">Zu den Einstellungen</button></div>`;
+    box.querySelector("[data-go]").onclick=()=>{close();view="mehr";sub.mehr="settings";render()};return}
+  if(!chat.length){box.innerHTML=`<div class="msg a">Hi! Ich kenne deine Noten, Prüfungen, Hausaufgaben und deinen Stundenplan. Frag mich etwas oder sag mir, was ich eintragen soll – z. B. „Mathe HA S. 42 Nr. 3 bis Freitag“.</div><div class="sugg">${SUGG.map(q=>`<button data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>`;
+    box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>sendChat(b.dataset.q));return}
+  box.innerHTML=chat.map(m=>m.role==="user"?`<div class="msg u">${esc(m.content)}</div>`:`${(m.acts||[]).map(a=>`<div class="act"><span class="ic" style="font-size:16px">check_circle</span>${esc(a)}</div>`).join("")}<div class="msg a ${m.pending&&!m.content?"wait":""}">${m.pending&&!m.content?"Denkt nach …":md(m.content)}</div>`).join("");
+  box.scrollTop=box.scrollHeight;
+}
+function chatSheet(){
+  sheet(`<div id="chatSheet"><div style="display:flex;align-items:center;gap:8px"><h2 style="flex:1;margin:0">Assistent</h2>${chat.length?`<button class="btn text" id="chNew">Neuer Chat</button>`:""}<button class="iconbtn" id="chX" aria-label="Schließen"><span class="ic">close</span></button></div>
+  <div id="chMsgs" class="msgs" aria-live="polite"></div>
+  <div class="composer"><textarea id="chIn" rows="1" placeholder="Frag etwas …" aria-label="Nachricht"></textarea><button class="iconbtn send" id="chGo" aria-label="Senden"><span class="ic">${chatCtl?"stop":"arrow_upward"}</span></button></div></div>`,
+  r=>{
+    chatMsgs();
+    const ta=r.querySelector("#chIn");
+    r.querySelector("#chX").onclick=close;
+    r.querySelector("#chNew")&&(r.querySelector("#chNew").onclick=()=>{chatCtl&&chatCtl.abort();chat=[];chatSheet()});
+    ta.oninput=()=>{ta.style.height="auto";ta.style.height=Math.min(120,ta.scrollHeight)+"px"};
+    ta.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();r.querySelector("#chGo").click()}};
+    r.querySelector("#chGo").onclick=()=>{if(chatCtl){chatCtl.abort();return}const t=ta.value.trim();if(t){ta.value="";ta.style.height="auto";sendChat(t)}};
+    setTimeout(()=>ta.focus(),50);
+  });
+}
+async function sendChat(text){
+  if(chatCtl||!aiReady())return;
+  chat.push({role:"user",content:text});
+  const msg={role:"assistant",content:"",pending:true,acts:[]};chat.push(msg);
+  chatCtl=new AbortController();setGo();chatMsgs();
+  const intro=`Du bist der Assistent in der persönlichen Schulapp eines Oberstufenschülers in Bayern (Punkte 0–15, Abiturnote = 17/3 − Gesamtpunkte/180). Antworte auf Deutsch, kurz und konkret, ohne Überschriften; kurze Listen mit „•“ sind ok. Nutze nur die Daten unten, erfinde nichts. Wenn der Nutzer etwas eintragen, ändern oder abhaken möchte, benutze die passenden Tools und bestätige danach knapp. Relative Daten („Freitag“, „morgen“) rechnest du ab heute aus. Bei Lernplänen: verteilte Wiederholung, aktive Abfrage, realistische Dauer.\n\nDATEN:\n${snapshot()}\n\nNachricht: `;
+  const turns=chat.filter(m=>!m.pending).map((m,i)=>({role:m.role,content:i===0?intro+m.content:m.content}));
+  try{
+    const t=await ai(turns,{tools:makeTools(a=>{msg.acts.push(a);chatMsgs()}),onText:({text})=>{msg.content=text;chatMsgs()},signal:chatCtl.signal,tier:"quick"});
+    msg.content=t||msg.content||"Erledigt.";
+  }catch(e){msg.content=(msg.content?msg.content+"\n\n":"")+aiErr(e)}
+  msg.pending=false;chatCtl=null;setGo();chatMsgs();
+  if(chat.length>24)chat=chat.slice(-24);
+}
+function setGo(){const g=$("#chGo");if(g)g.innerHTML=`<span class="ic">${chatCtl?"stop":"arrow_upward"}</span>`,g.setAttribute("aria-label",chatCtl?"Stoppen":"Senden")}
+
+/* ---------- Stundenplan aus Foto ---------- */
+function ttPhotoSheet(){
+  let file=null,parsed=null,ctl=null;
+  sheet(`<h2>Stundenplan aus Foto</h2>
+  <p class="muted" style="margin-top:0">Fotografiere deinen Stundenplan (Papier, Untis-Screenshot, Tafel). Die KI liest Fächer, Zeiten, Räume und Lehrkräfte aus – du prüfst das Ergebnis, bevor es übernommen wird.</p>
+  <label class="btn tonal" style="width:100%;justify-content:center;cursor:pointer"><span class="ic">add_a_photo</span>Foto aufnehmen oder auswählen<input type="file" id="tp_f" accept="image/*" hidden></label>
+  <div id="tp_body" style="margin-top:12px"></div>
+  <div class="actions"><button class="btn text" id="cx">Abbrechen</button><button class="btn filled" id="tp_go" disabled><span class="ic">auto_awesome</span>Auslesen</button></div>`,
+  r=>{
+    const body=r.querySelector("#tp_body"),go=r.querySelector("#tp_go");
+    r.querySelector("#cx").onclick=()=>{ctl&&ctl.abort();close()};
+    if(!aiReady())body.innerHTML=`<div class="info">${aiErr({code:"no_ai"})}</div>`;
+    r.querySelector("#tp_f").onchange=e=>{file=e.target.files[0];parsed=null;if(!file)return;body.innerHTML=`<img class="photo-prev" alt="Dein Foto" src="${URL.createObjectURL(file)}">`;go.disabled=!aiReady();go.innerHTML='<span class="ic">auto_awesome</span>Auslesen'};
+    go.onclick=async()=>{
+      if(parsed){applyTT(parsed);close();render();toast("Stundenplan übernommen");return}
+      if(!file)return;go.disabled=true;go.textContent="Lese aus … (bis zu 1 Min.)";ctl=new AbortController();
+      const list=state.subjects.map(s=>s.short+"="+s.name).join(", ");
+      const prompt=`Das Bild zeigt einen Schul-Stundenplan. Lies ihn vollständig aus und antworte NUR mit JSON, ohne Erklärung, in genau dieser Form:
+{"stunden":[{"nr":1,"beginn":"08:00","ende":"08:45"}],"eintraege":[{"tag":1,"nr":1,"fach":"MAT","raum":"204","lehrer":"Hub"}]}
+Regeln: tag 1=Montag bis 5=Freitag. nr ist die Stundennummer (1 = erste Stunde). Doppelstunden als zwei Einträge. Wenn keine Uhrzeiten zu sehen sind, setze beginn und ende auf null. raum und lehrer weglassen, wenn nicht erkennbar.
+Ordne jedes Fach, wenn es passt, einem dieser vorhandenen Fächer zu und gib dann genau dessen Kürzel an: ${list}. Typische Abkürzungen: M=Mathematik, D=Deutsch, E=Englisch, Ph=Physik, B=Biologie, G=Geschichte, Ek/Geo=Geographie, L=Latein, Ku=Kunst, K/Ev/Rk=Religion, WR=Wirtschaft. Wenn ein Fach nicht in der Liste ist, gib seinen vollen deutschen Namen an.`;
+      try{
+        const t=await ai(prompt,{image:file,signal:ctl.signal,tier:"default"});
+        const j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));
+        if(!Array.isArray(j.eintraege)||!j.eintraege.length)throw {code:"empty"};
+        parsed=j;body.innerHTML=ttPreview(j);go.disabled=false;go.innerHTML='<span class="ic">check</span>Übernehmen';
+      }catch(e){body.insertAdjacentHTML("beforeend",`<div class="info">${e&&e.code==="empty"||e instanceof SyntaxError?"Auf dem Foto war kein Stundenplan erkennbar. Versuch ein schärferes Foto, möglichst gerade von oben.":aiErr(e)}</div>`);go.disabled=false;go.innerHTML='<span class="ic">auto_awesome</span>Nochmal versuchen'}
+      ctl=null;
+    };
+  });
+}
+function ttPreview(j){
+  const days=["","Mo","Di","Mi","Do","Fr"],neu=new Set();
+  const rows=[1,2,3,4,5].map(d=>{const es=j.eintraege.filter(e=>+e.tag===d).sort((a,b)=>a.nr-b.nr);
+    return `<div class="dayrow"><b>${days[d]}</b><div class="minirow" style="margin:0">${es.map(e=>{const s=findSubj(e.fach);if(!s)neu.add(String(e.fach));return s?tag(s):`<span class="tag" style="background:var(--outline)">${esc(String(e.fach).slice(0,4))}</span>`}).join("")||'<span class="muted small">frei</span>'}</div></div>`}).join("");
+  const times=(j.stunden||[]).filter(x=>x.beginn).length;
+  return `<div class="card" style="padding:14px">${rows}</div>
+  <p class="small muted">${j.eintraege.length} Stunden erkannt${times?`, ${times} Uhrzeiten`:", keine Uhrzeiten (deine bisherigen bleiben)"}.${neu.size?` Neu angelegt werden: ${[...neu].map(esc).join(", ")}.`:""} Dein bisheriger Stundenplan wird ersetzt.</p>`;
+}
+function applyTT(j){
+  const cells={},meta={},used=new Set(state.subjects.map(s=>s.color));
+  const times=(j.stunden||[]).filter(x=>x.beginn&&x.ende).sort((a,b)=>a.nr-b.nr);
+  if(times.length){const maxNr=Math.max(...times.map(x=>+x.nr),state.timetable.slots.length);const sl=[];for(let n=1;n<=maxNr;n++){const t=times.find(x=>+x.nr===n);sl.push(t?{start:t.beginn,end:t.ende}:(state.timetable.slots[n-1]||{start:"",end:""}))}state.timetable.slots=sl}
+  j.eintraege.forEach(e=>{
+    const d=+e.tag,n=+e.nr-1;if(!(d>=1&&d<=5)||!(n>=0))return;
+    while(state.timetable.slots.length<=n){const last=state.timetable.slots[state.timetable.slots.length-1];state.timetable.slots.push({start:last?last.end:"",end:""})}
+    let s=findSubj(e.fach);
+    if(!s){const name=String(e.fach).trim();const color=COLORS.find(c=>!used.has(c))||COLORS[state.subjects.length%COLORS.length];used.add(color);s={id:uid(),name,short:name.replace(/[^A-Za-zÄÖÜäöü]/g,"").slice(0,3).toUpperCase()||"NEU",color};state.subjects.push(s)}
+    cells[d+"-"+n]=s.id;if(e.raum||e.lehrer)meta[d+"-"+n]={room:String(e.raum||""),teacher:String(e.lehrer||"")};
+  });
+  state.timetable.cells=cells;state.timetable.meta=meta;save();
+}
+
 /* ---------- actions ---------- */
 const ACT={
+  chat:()=>chatSheet(),
+  ttPhoto:()=>ttPhotoSheet(),
+  goMissing:()=>{view="mehr";sub.mehr="pruef";sub.pruef="offen";render();window.scrollTo(0,0)},
+  saveKey:()=>{const v=($("#apikey")?.value||"").trim();try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}toast(v?"Schlüssel gespeichert":"Schlüssel entfernt")},
   newExam:()=>examSheet(null),
   newExamFor:()=>examSheet(null,sub.faecher),
   editExam:d=>examSheet(state.exams.find(e=>e.id===d.id)),
