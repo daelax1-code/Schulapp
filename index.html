@@ -45,6 +45,7 @@
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 *,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--on);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 .ic{font-family:"Material Symbols Rounded";font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;font-variation-settings:"FILL" 0,"wght" 500;-webkit-font-feature-settings:"liga";font-feature-settings:"liga";user-select:none;width:1em;overflow:hidden;flex:none}
@@ -118,7 +119,9 @@ body.scrolled .top h1{transform:scale(.78)}
 
 .nav{position:fixed;left:0;right:0;bottom:0;background:var(--s2);padding:10px 8px calc(12px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;z-index:30}
 .nav .in{display:flex;gap:4px;width:100%;max-width:640px}
-.navi{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--on-var);font-size:12px;font-weight:650;padding:0}
+.navi{flex:1;min-width:0;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--on-var);font-size:12px;font-weight:650;padding:0}
+.navi .lb{height:16px;white-space:nowrap;transition:opacity .25s}
+@media (max-width:519px){.navi:not([aria-current="page"]) .lb{opacity:0}.navi .ind{width:52px}}
 .navi .ind{width:60px;height:32px;border-radius:16px;display:grid;place-items:center}
 .navi[aria-current="page"]{color:var(--on)}
 .navi[aria-current="page"] .ind{background:var(--secondary-c);color:var(--on-secondary-c)}
@@ -179,7 +182,7 @@ body.scrolled .top h1{transform:scale(.78)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .sheet{will-change:transform;touch-action:pan-y;background:var(--s1);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:32px 32px 0 0;padding:8px 20px calc(20px + env(safe-area-inset-bottom,0px))}
 @media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:32px;max-height:88%}}
-.handle{cursor:grab;padding:8px 0;background-clip:content-box;height:20px;width:44px}
+
 .drag-zone{touch-action:none}
 @media (prefers-reduced-motion:no-preference){
   .scrim{animation:fade .3s ease both}
@@ -194,7 +197,7 @@ body.scrolled .top h1{transform:scale(.78)}
 @keyframes sheetOut{to{transform:translateY(105%)}}
 @keyframes popIn{from{transform:scale(.88);opacity:0}}
 @keyframes popOut{to{transform:scale(.94);opacity:0}}
-.handle{width:36px;height:4px;border-radius:2px;background:var(--outline);margin:6px auto 10px;opacity:.6}
+.handle{box-sizing:content-box;width:36px;height:4px;padding:10px 24px;margin:-4px auto 4px;border-radius:12px;background:var(--outline);background-clip:content-box;opacity:.6;cursor:grab}
 .sheet h2{margin:0 0 14px;font-size:24px;font-weight:800;font-stretch:110%}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .field>span{font-size:14px;font-weight:650;color:var(--on-var)}
@@ -309,6 +312,38 @@ body.scrolled .top h1{transform:scale(.78)}
 .swipe .swbg{position:absolute;inset:0;display:flex;align-items:center;padding:0 18px;pointer-events:none;opacity:0;transition:opacity .2s}
 .swipe .swbg .ic{transition:transform .35s var(--spring)}
 .swipe.armed .swbg .ic{transform:scale(1.35)}
+/* Settings */
+.set-group{margin:0 0 18px}
+.set-group>h3{margin:0 4px 8px;font-size:14px;font-weight:750;color:var(--primary)}
+.set-row{display:flex;align-items:center;gap:14px;width:100%;border:0;background:var(--s1);padding:14px 16px;text-align:left;color:var(--on);min-height:60px;border-radius:6px;cursor:pointer}
+.set-group>h3+*{border-top-left-radius:22px!important;border-top-right-radius:22px!important}
+.set-group>:last-child{border-bottom-left-radius:22px!important;border-bottom-right-radius:22px!important}
+.set-group{display:flex;flex-direction:column;gap:3px}
+.set-row .ic.lead{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:var(--secondary-c);color:var(--on-secondary-c);font-size:22px}
+.set-row .main{flex:1;min-width:0}
+.set-row .t{font-weight:650}
+.set-row .s{font-size:14px;color:var(--on-var)}
+.set-row.static{cursor:default}
+.set-row.danger .ic.lead{background:var(--error-c);color:var(--error)}
+.set-row.danger .t{color:var(--error)}
+.switch{appearance:none;-webkit-appearance:none;width:52px;height:32px;border-radius:16px;background:var(--s4);border:2px solid var(--outline);position:relative;cursor:pointer;flex:none;margin:0;transition:background .25s,border-color .25s}
+.switch::after{content:"";position:absolute;top:50%;left:6px;width:16px;height:16px;border-radius:50%;background:var(--outline);transform:translateY(-50%);transition:left .45s var(--spring),width .45s var(--spring),height .45s var(--spring),background .25s}
+.switch:checked{background:var(--primary);border-color:var(--primary)}
+.switch:checked::after{left:24px;width:24px;height:24px;background:var(--on-primary)}
+.switch:active::after{width:28px}
+.switch:checked:active::after{left:20px}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts button{border:0;border-radius:14px;background:var(--s3);padding:10px 14px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:44px}
+.opts button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-radius:22px}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatches button{width:48px;height:48px;border-radius:50%;border:0;cursor:pointer;position:relative;overflow:hidden;display:grid;place-items:center}
+.swatches button i{position:absolute;inset:0;background:var(--b)}
+.swatches button i::after{content:"";position:absolute;right:0;bottom:0;width:50%;height:50%;background:var(--c)}
+.swatches button[aria-pressed="true"]{border-radius:16px}
+.swatches button[aria-pressed="true"]::after{content:"check";font-family:"Material Symbols Rounded";position:relative;z-index:1;color:#fff;font-size:22px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.set-card{background:var(--s1);border-radius:6px;padding:16px}
+.dot-ok{width:10px;height:10px;border-radius:50%;background:var(--ok);display:inline-block}
+html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition:none!important}
 .dayrow{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center;margin:4px 0;font-size:14px}
 @media (max-width:560px){
   .top h1{font-size:28px}
@@ -362,7 +397,7 @@ function defaults(){
     study:{done:{}},
     targets:{},
     timetable:{slots:defaultSlots("08:00",45),cells:{},meta:{},cancel:{}},
-    settings:{hj:"Q1",bigWeight:1,smallWeight:1,
+    settings:{hj:"Q1",bigWeight:1,smallWeight:1,theme:"system",accent:"lila",motion:"full",haptics:true,start:"cockpit",
       types:[{id:"kl",name:"Klausur",big:true},{id:"ex",name:"Stegreifaufgabe",big:false},{id:"ab",name:"Abfrage",big:false},{id:"re",name:"Referat",big:false},{id:"mi",name:"Mitarbeit",big:false}],
       holidays:[{id:uid(),name:"Herbstferien",from:"2026-11-02",to:"2026-11-06"},{id:uid(),name:"Weihnachtsferien",from:"2026-12-24",to:"2027-01-08"}]},
     abi:{b1:{},b2:[{},{},{},{},{}].map(()=>({subjectId:"",w:null,s:null}))}
@@ -407,10 +442,47 @@ state=migrate(loadLocal());
     const id=await u.id(); if(!id)return;
     db=d;userId=id;dbRef=db.doc("data/users/"+id+"/state");
     const snap=await dbRef.get();
-    if(snap.exists){state=migrate(JSON.parse(JSON.stringify(snap.data())));saveLocal();syncState="synchronisiert";render()}
+    if(snap.exists){state=migrate(JSON.parse(JSON.stringify(snap.data())));saveLocal();applyTheme();syncState="synchronisiert";render()}
     else{await dbRef.set(JSON.parse(JSON.stringify(state)));syncState="synchronisiert";renderSync()}
   }catch(e){syncState="nur lokal";renderSync()}
 })();
+
+/* ---------- Darstellung: Design, Akzentfarbe, Bewegung ---------- */
+const APP_VERSION="1.5";
+const ACCENTS={
+ lila:{n:"Lila",l:["#5B4FC4","#fff","#E5DEFF","#170065","#E4DFF9","#1C192C","#8A4A5F","#FFD9E2","#3A0718"],d:["#C8BFFF","#2C1E93","#4337AB","#E5DEFF","#47435A","#E4DFF9","#FFB0C8","#6E3348","#FFD9E2"]},
+ blau:{n:"Blau",l:["#3F5F90","#fff","#D6E3FF","#001B3D","#DAE2F9","#131C2B","#715573","#FBD7FC","#29132D"],d:["#A9C7FF","#0A305F","#264777","#D6E3FF","#3E4759","#DAE2F9","#DEBCDF","#584059","#FBD7FC"]},
+ tuerkis:{n:"Türkis",l:["#006A6A","#fff","#6FF7F6","#002020","#CCE8E7","#051F1F","#4B607C","#D3E4FF","#041C35"],d:["#4CDADA","#003737","#004F4F","#6FF7F6","#324B4B","#CCE8E7","#B3C8E8","#33485F","#D3E4FF"]},
+ gruen:{n:"Grün",l:["#386A20","#fff","#B8F397","#042100","#D7E8CD","#121F0E","#386666","#BBEBEB","#002020"],d:["#9DD67D","#0C3900","#205107","#B8F397","#3C4B37","#D7E8CD","#A0CFCF","#1E4E4E","#BBEBEB"]},
+ orange:{n:"Orange",l:["#8B5000","#fff","#FFDCBE","#2C1600","#F2DFD1","#251A11","#51643F","#D4EABB","#102004"],d:["#FFB870","#4A2800","#693C00","#FFDCBE","#52443A","#F2DFD1","#B8CEA1","#3A4C2A","#D4EABB"]},
+ pink:{n:"Pink",l:["#984061","#fff","#FFD9E2","#3E001D","#FFD9E2","#2B151C","#7C5635","#FFDCC2","#2E1500"],d:["#FFB0C8","#5E1133","#7B2949","#FFD9E2","#5A3F47","#FFD9E2","#EFBD94","#623F20","#FFDCC2"]}
+};
+const AK=["--primary","--on-primary","--primary-c","--on-primary-c","--secondary-c","--on-secondary-c","--tertiary","--tertiary-c","--on-tertiary-c"];
+function applyTheme(){
+  const st=state.settings,root=document.documentElement;
+  if(st.theme==="light"||st.theme==="dark")root.dataset.theme=st.theme;else delete root.dataset.theme;
+  const a=ACCENTS[st.accent]||ACCENTS.lila,v=arr=>AK.map((k,i)=>k+":"+arr[i]).join(";");
+  let el=document.getElementById("accentvars");if(!el){el=document.createElement("style");el.id="accentvars";document.head.appendChild(el)}
+  el.textContent=`:root{${v(a.l)}}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${v(a.d)}}}:root[data-theme="dark"]{${v(a.d)}}`;
+  root.classList.toggle("rm",st.motion==="off");
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m)requestAnimationFrame(()=>{m.content=getComputedStyle(document.body).getPropertyValue("--bg").trim()||m.content});
+}
+/* Daten prüfen & reparieren: entfernt verwaiste Einträge */
+function repairData(){
+  const ids=new Set(state.subjects.map(x=>x.id));let n=0;
+  const ex=state.exams.length;state.exams=state.exams.filter(e=>ids.has(e.subjectId));n+=ex-state.exams.length;
+  state.exams.forEach(e=>{if(!HJS.includes(e.hj)){e.hj=state.settings.hj;n++}if(e.points!=null&&!(e.points>=0&&e.points<=15)){e.points=null;n++}});
+  state.homework.forEach(h=>{if(h.subjectId&&!ids.has(h.subjectId)){h.subjectId="";n++}});
+  state.absences.forEach(a=>{if(a.sid&&!ids.has(a.sid)){a.sid="";n++}});
+  for(const k of Object.keys(state.timetable.cells))if(!ids.has(state.timetable.cells[k])){delete state.timetable.cells[k];delete state.timetable.meta[k];n++}
+  for(const k of Object.keys(state.abi.b1))if(!ids.has(k.split("|")[0])){delete state.abi.b1[k];n++}
+  state.abi.b2.forEach(e=>{if(e.subjectId&&!ids.has(e.subjectId)){e.subjectId="";n++}});
+  const typeIds=new Set(state.settings.types.map(t=>t.id));state.exams.forEach(e=>{if(!typeIds.has(e.type)){e.type=state.settings.types[0].id;n++}});
+  const old=iso(new Date(Date.now()-30*864e5));for(const k of Object.keys(state.timetable.cancel))if(k.split("|")[0]<old){delete state.timetable.cancel[k];n++}
+  return n;
+}
+function storageKB(){try{return Math.round(new Blob([JSON.stringify(state)]).size/1024)}catch(e){return 0}}
 
 /* ---------- grade logic ---------- */
 const subj=id=>state.subjects.find(s=>s.id===id);
@@ -578,17 +650,17 @@ const WAVE=cookiePath(16,.03);
 
 /* ---------- UI shell ---------- */
 let view="cockpit", sub={faecher:null,mehr:"menu",aufgaben:"offen",pruef:"kommend"};
-const NAV=[["cockpit","dashboard","Cockpit"],["plan","calendar_month","Plan"],["faecher","school","Fächer"],["aufgaben","task_alt","Aufgaben"],["mehr","workspace_premium","Abitur & mehr"]];
+const NAV=[["cockpit","dashboard","Cockpit"],["plan","calendar_month","Plan"],["faecher","school","Fächer"],["aufgaben","task_alt","Aufgaben"],["mehr","workspace_premium","Abitur & mehr"],["einst","settings","Einstellungen"]];
 /* ---------- Motion ---------- */
-const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+const RM=()=>state.settings.motion==="off"||(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches);
 let anim=null, lastNav=null, popId=null, fabWas=null;
 const segPos={};
-function haptic(ms=8){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+function haptic(ms=8){if(state.settings.haptics===false)return;try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 function go(kind){anim=kind;window.scrollTo({top:0})}
 function renderNav(){
   if(lastNav===view)return;
   const was=lastNav;lastNav=view;
-  $("#nav").innerHTML=NAV.map(([id,ic,l])=>`<button class="navi ${view===id&&was!==null?"pop":""}" data-nav="${id}" ${view===id?'aria-current="page"':""}><span class="ind"><span class="ic">${ic}</span></span>${l}</button>`).join("");
+  $("#nav").innerHTML=NAV.map(([id,ic,l])=>`<button class="navi ${view===id&&was!==null?"pop":""}" data-nav="${id}" ${view===id?'aria-current="page"':""}><span class="ind"><span class="ic">${ic}</span></span><span class="lb">${l}</span></button>`).join("");
 }
 function countUp(el){
   const raw=el.textContent.trim();if(!/^-?\d+(,\d+)?$/.test(raw))return;
@@ -655,7 +727,7 @@ function bindSwipes(){
 }
 function undoable(msg,mutate){
   const snap=JSON.stringify(state);mutate();save();render();
-  toast(msg,{label:"Rückgängig",fn:()=>{state=migrate(JSON.parse(snap));save();render();toast("Wiederhergestellt")}});
+  toast(msg,{label:"Rückgängig",fn:()=>{state=migrate(JSON.parse(snap));applyTheme();save();render();toast("Wiederhergestellt")}});
 }
 function delHw(id){const h=state.homework.find(x=>x.id===id);if(!h)return;haptic(12);undoable("Aufgabe gelöscht",()=>{state.homework=state.homework.filter(x=>x.id!==id)})}
 addEventListener("scroll",()=>{
@@ -677,7 +749,7 @@ function fab(label,act){const f=$("#fab");if(!label){f.hidden=true;fabWas=null;r
   if(was!==label&&!RM()){f.classList.remove("show","small");void f.offsetWidth;f.classList.add("show")}}
 function render(){
   renderNav();
-  const V={cockpit:vCockpit,plan:vPlan,faecher:vFaecher,aufgaben:vAufgaben,mehr:vMehr}[view];
+  const V={cockpit:vCockpit,plan:vPlan,faecher:vFaecher,aufgaben:vAufgaben,mehr:vMehr,einst:vEinst}[view]||vCockpit;
   $("#app").innerHTML=V();
   renderSync();afterRender();
 }
@@ -825,7 +897,7 @@ function vFach(id){
     <div class="target-out" id="tg_out">${targetHtml(id,state.settings.hj,state.targets[id]??10)}</div>
     <p class="small muted" style="margin:8px 0 0">So viele Punkte brauchst du in der nächsten Leistung, damit dein Halbjahresschnitt auf dein Ziel gerundet wird.</p>
   </div>
-  ${rows}<div class="info">Halbjahresschnitt = große Leistungen (Klausuren) und Ø der kleinen Leistungen im Verhältnis ${big}:${sm}. Ändern unter Abitur & mehr → Einstellungen.</div>`;
+  ${rows}<div class="info">Halbjahresschnitt = große Leistungen (Klausuren) und Ø der kleinen Leistungen im Verhältnis ${big}:${sm}. Ändern unter Einstellungen → Noten.</div>`;
 }
 
 function vAufgaben(){
@@ -844,7 +916,7 @@ function vMehr(){
   const m=sub.mehr;
   if(m==="abi")return vAbi();
   if(m==="stats")return vStats();
-  if(m==="settings")return vSettings();
+  if(m==="settings"){view="einst";sub.mehr="menu";lastNav=null;renderNav();return vEinst()}
   if(m==="pruef")return vPruef();
   if(m==="lernen")return vLernen();
   if(m==="fehl")return vFehl();
@@ -857,7 +929,6 @@ function vMehr(){
     ${it("pruef","quiz","Alle Prüfungen",state.exams.length+" eingetragen")}
     ${it("fehl","event_busy","Fehlzeiten",(()=>{const u=state.absences.filter(a=>!a.excused).length;return state.absences.length+" eingetragen"+(u?` · ${u} ohne Entschuldigung`:"")})())}
     ${it("stats","bar_chart","Statistik","Verteilung, Fächervergleich, Verlauf")}
-    ${it("settings","settings","Einstellungen","Gewichtung, Prüfungsarten, Ferien, Daten")}
   </div>`;
 }
 function back(){return `<button class="iconbtn" data-act="mehr" data-k="menu" aria-label="Zurück"><span class="ic">arrow_back</span></button>`}
@@ -954,30 +1025,72 @@ function vStats(){
   </div>`;
 }
 
-function vSettings(){
+function vEinst(){
   fab(null);
-  const st=state.settings;
-  return `<div class="top">${back()}<h1>Einstellungen</h1></div>
-  <div class="grid">
-  <div class="card"><h3>Halbjahresschnitt</h3>
-    <div class="row2"><label class="field"><span>Gewicht große Leistungen</span><input type="number" min="0" step="0.5" value="${st.bigWeight}" data-set="bigWeight"></label>
-    <label class="field"><span>Gewicht kleine Leistungen</span><input type="number" min="0" step="0.5" value="${st.smallWeight}" data-set="smallWeight"></label></div>
-    <p class="small muted" style="margin:0">Standard 1:1 – also Klausur und Ø der kleinen Leistungen zählen gleich.</p></div>
-  <div class="card alt"><h3><span class="sp">Prüfungsarten</span><button class="btn text" data-act="newType">Neu</button></h3>
-    <div class="list">${st.types.map(t=>`<button class="item" data-act="editType" data-id="${t.id}"><div class="main"><div class="t">${esc(t.name)}</div><div class="s">${t.big?"große Leistung":"kleine Leistung"}</div></div><span class="ic muted">edit</span></button>`).join("")}</div></div>
-  <div class="card"><h3><span class="sp">Ferien</span><button class="btn text" data-act="newHol">Neu</button></h3>
-    <div class="list">${st.holidays.sort((a,b)=>a.from.localeCompare(b.from)).map(h=>`<button class="item" data-act="editHol" data-id="${h.id}"><div class="main"><div class="t">${esc(h.name)}</div><div class="s">${fmtDate(h.from)} – ${fmtDate(h.to)}</div></div><span class="ic muted">edit</span></button>`).join("")||'<div class="empty">Keine Ferien eingetragen.</div>'}</div>
-    <p class="small muted">Vorausgefüllt mit bayerischen Terminen – bitte mit deinem Schulkalender abgleichen.</p></div>
-  <div class="card"><h3>KI-Assistent</h3>
-    ${sampleCap?`<p class="small muted" style="margin:0">Läuft über dein Claude-Konto – nichts einzurichten.</p>`:`<p class="small muted" style="margin-top:0">In der installierten App braucht der Assistent einen eigenen API-Schlüssel von console.anthropic.com. Jede Frage kostet dann ein paar Zehntel Cent. Der Schlüssel bleibt nur auf diesem Gerät.</p>
-    <label class="field"><span>API-Schlüssel</span><input type="password" id="apikey" autocomplete="off" value="${esc(getKey())}" placeholder="sk-ant-…"></label>
-    <div class="actions" style="justify-content:flex-start"><button class="btn tonal" data-act="saveKey">Schlüssel speichern</button></div>`}
+  const st=state.settings,swOk=("serviceWorker" in navigator)&&!!navigator.serviceWorker.controller;
+  const row=(ic,t,s,right="",attrs="",cls="")=>`<${attrs?"button":"div"} class="set-row ${attrs?"":"static"} ${cls}" ${attrs}><span class="ic lead">${ic}</span><div class="main"><div class="t">${t}</div>${s?`<div class="s">${s}</div>`:""}</div>${right}</${attrs?"button":"div"}>`;
+  const chev='<span class="ic muted">chevron_right</span>';
+  const opt=(key,val,label,ic)=>`<button data-act="setOpt" data-k="${key}" data-v="${val}" aria-pressed="${String(st[key])===val}">${ic?`<span class="ic" style="font-size:20px">${ic}</span>`:""}${label}</button>`;
+  return top("Einstellungen")+`
+  <div class="grid" style="align-items:start">
+  <div>
+    <section class="set-group"><h3>Darstellung</h3>
+      <div class="set-card"><div class="field" style="margin-bottom:14px"><span>Design</span><div class="opts">${opt("theme","system","System","brightness_auto")}${opt("theme","light","Hell","light_mode")}${opt("theme","dark","Dunkel","dark_mode")}</div></div>
+      <div class="field" style="margin:0"><span>Akzentfarbe</span><div class="swatches">${Object.entries(ACCENTS).map(([k,a])=>`<button data-act="setOpt" data-k="accent" data-v="${k}" aria-pressed="${st.accent===k}" aria-label="${a.n}" title="${a.n}"><i style="--b:${a.l[0]};--c:${a.l[6]}"></i></button>`).join("")}</div></div></div>
+    </section>
+    <section class="set-group"><h3>Bedienung</h3>
+      ${row("animation","Animationen",st.motion==="off"?"Aus – alles erscheint sofort":"Federnde Übergänge und Effekte",`<input type="checkbox" class="switch" data-toggle="motion" ${st.motion!=="off"?"checked":""} aria-label="Animationen">`)}
+      ${row("vibration","Haptisches Feedback","Kurzes Vibrieren beim Antippen (Android)",`<input type="checkbox" class="switch" data-toggle="haptics" ${st.haptics!==false?"checked":""} aria-label="Haptisches Feedback">`)}
+      <div class="set-row static"><span class="ic lead">home</span><div class="main"><div class="t">Startseite</div><div class="s">Welcher Tab beim Öffnen erscheint</div></div><select data-start style="background:var(--s3);border:0;border-radius:12px;padding:10px;min-height:44px">${NAV.filter(n=>n[0]!=="einst").map(([id,,l])=>`<option value="${id}" ${st.start===id?"selected":""}>${l}</option>`).join("")}</select></div>
+    </section>
+    <section class="set-group"><h3>Schuljahr</h3>
+      <div class="set-card"><div class="field" style="margin:0"><span>Aktuelles Halbjahr – neue Prüfungen landen hier</span><div class="opts">${HJS.map(h=>opt("hj",h,HJ_LABEL[h])).join("")}</div></div></div>
+      ${row("schedule","Stundenzeiten",`${state.timetable.slots.length} Stunden, Beginn ${state.timetable.slots[0]?.start||"–"}`,chev,'data-act="ttSettings"')}
+      ${row("photo_camera","Stundenplan aus Foto","Fächer, Räume und Zeiten automatisch auslesen",chev,'data-act="ttPhoto"')}
+    </section>
+    <section class="set-group"><h3>Noten</h3>
+      <div class="set-card"><div class="row2"><label class="field"><span>Gewicht große Leistungen</span><input type="number" min="0" step="0.5" value="${st.bigWeight}" data-set="bigWeight"></label>
+      <label class="field"><span>Gewicht kleine Leistungen</span><input type="number" min="0" step="0.5" value="${st.smallWeight}" data-set="smallWeight"></label></div>
+      <p class="small muted" style="margin:0">Standard 1:1 – Klausuren und Ø der kleinen Leistungen zählen gleich.</p></div>
+      ${st.types.map(t=>row(t.big?"assignment":"edit_note",esc(t.name),t.big?"große Leistung":"kleine Leistung",'<span class="ic muted">edit</span>',`data-act="editType" data-id="${t.id}"`)).join("")}
+      ${row("add","Prüfungsart hinzufügen","","",'data-act="newType"')}
+    </section>
   </div>
-  <div class="card alt"><h3>Daten</h3>
-    <p class="small muted" style="margin-top:0">${syncState==="synchronisiert"?"Deine Daten liegen privat in deinem Konto und sind auf all deinen Geräten verfügbar.":"Deine Daten werden auf diesem Gerät gespeichert."}</p>
-    <div class="actions" style="justify-content:flex-start"><button class="btn tonal" data-act="exportData"><span class="ic">content_copy</span>Backup kopieren</button><button class="btn tonal" data-act="importData"><span class="ic">upload</span>Backup einfügen</button><button class="btn danger" data-act="resetData">Alles löschen</button></div></div>
+  <div>
+    <section class="set-group"><h3>Ferien</h3>
+      ${st.holidays.slice().sort((a,b)=>a.from.localeCompare(b.from)).map(h=>row(daysUntil(h.to)<0?"history":"beach_access",esc(h.name),fmtDate(h.from)+" – "+fmtDate(h.to)+(daysUntil(h.to)<0?" · vorbei":""),'<span class="ic muted">edit</span>',`data-act="editHol" data-id="${h.id}"`)).join("")}
+      ${row("add","Ferien hinzufügen","Vorausgefüllt mit bayerischen Terminen – bitte mit dem Schulkalender abgleichen","",'data-act="newHol"')}
+    </section>
+    <section class="set-group"><h3>KI-Assistent</h3>
+      ${sampleCap?row("auto_awesome","Verbunden","Läuft über dein Claude-Konto – nichts einzurichten",'<span class="dot-ok" aria-hidden="true"></span>'):`<div class="set-card"><p class="small muted" style="margin-top:0">In der installierten App braucht der Assistent einen eigenen API-Schlüssel von console.anthropic.com. Jede Frage kostet ein paar Zehntel Cent. Der Schlüssel bleibt nur auf diesem Gerät.</p>
+      <label class="field"><span>API-Schlüssel ${getKey()?'<span class="dot-ok" aria-label="gespeichert"></span>':""}</span><input type="password" id="apikey" autocomplete="off" value="${esc(getKey())}" placeholder="sk-ant-…"></label>
+      <div class="actions" style="justify-content:flex-start;margin:0"><button class="btn tonal" data-act="saveKey">Speichern</button>${getKey()?`<button class="btn text" data-act="testKey">Verbindung testen</button>`:""}</div></div>`}
+    </section>
+    <section class="set-group"><h3>Daten</h3>
+      ${row(syncState==="synchronisiert"?"cloud_done":"smartphone",syncState==="synchronisiert"?"In deinem Konto gespeichert":"Auf diesem Gerät gespeichert",`${storageKB()} KB · ${state.exams.length} Prüfungen · ${state.homework.length} Aufgaben`)}
+      ${row("download","Backup als Datei speichern","Zum Sichern oder für ein anderes Gerät",chev,'data-act="exportFile"')}
+      ${row("upload_file","Backup aus Datei laden","Ersetzt die aktuellen Daten",chev,'data-act="importFile"')}
+      ${row("content_copy","Backup als Text kopieren","Zum Übertragen zwischen Claude-Version und App",chev,'data-act="exportData"')}
+      ${row("content_paste","Backup-Text einfügen","",chev,'data-act="importData"')}
+      ${row("event","Termine in Kalender exportieren","Prüfungen, Hausaufgaben und Ferien als .ics",chev,'data-act="ics"')}
+    </section>
+    <section class="set-group"><h3>Hilfe bei Problemen</h3>
+      ${row("build","Daten prüfen und reparieren","Entfernt verwaiste Einträge, z. B. nach gelöschten Fächern",chev,'data-act="repair"')}
+      ${swOk?row("system_update","Nach Update suchen","Lädt die neueste Version von GitHub",chev,'data-act="checkUpdate"'):""}
+      ${swOk?row("cleaning_services","Zwischenspeicher leeren","Hilft, wenn ein Update nicht ankommt – deine Daten bleiben",chev,'data-act="clearCache"'):""}
+      ${row("refresh","App neu laden","",chev,'data-act="reload"')}
+      ${row("delete_forever","Alles löschen","Noten, Aufgaben, Stundenplan – nicht rückgängig zu machen",chev,'data-act="resetData"',"danger")}
+    </section>
+    <p class="small muted" style="text-align:center;margin:4px 0 0">Schulapp ${APP_VERSION} · ${swOk?"Installierte App":"Claude-Version"}</p>
+  </div>
   </div>`;
 }
+document.addEventListener("change",e=>{
+  const t=e.target.dataset.toggle;
+  if(t==="motion"){state.settings.motion=e.target.checked?"full":"off";applyTheme();save();setTimeout(render,250)}
+  if(t==="haptics"){state.settings.haptics=e.target.checked;save();haptic(10);setTimeout(render,250)}
+  if(e.target.hasAttribute("data-start")){state.settings.start=e.target.value;save();toast("Startseite gespeichert")}
+});
 document.addEventListener("input",e=>{const id=e.target.dataset.target;if(!id)return;const t=+e.target.value;state.targets[id]=t;$("#tg_v").textContent=t;$("#tg_out").innerHTML=targetHtml(id,state.settings.hj,t)});
 document.addEventListener("change",e=>{if(e.target.dataset.target){save();return}const k=e.target.dataset.set;if(k){state.settings[k]=Math.max(0,parseFloat(e.target.value)||0);save();toast("Gespeichert")}});
 
@@ -1244,8 +1357,8 @@ const SUGG=["Was steht diese Woche an?","Wie stehe ich gerade insgesamt?","Mach 
 function md(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^#+\s*/gm,"").replace(/^[-*]\s/gm,"• ")}
 function chatMsgs(){
   const box=$("#chMsgs");if(!box)return;
-  if(!aiReady()){box.innerHTML=`<div class="msg a">Hier in der installierten App braucht der Assistent einen API-Schlüssel. Du findest das Feld unter Abitur & mehr → Einstellungen → KI-Assistent.</div><div class="sugg"><button data-go="settings">Zu den Einstellungen</button></div>`;
-    box.querySelector("[data-go]").onclick=()=>{close();view="mehr";sub.mehr="settings";render()};return}
+  if(!aiReady()){box.innerHTML=`<div class="msg a">Hier in der installierten App braucht der Assistent einen API-Schlüssel. Du findest das Feld unter Einstellungen → KI-Assistent.</div><div class="sugg"><button data-go="settings">Zu den Einstellungen</button></div>`;
+    box.querySelector("[data-go]").onclick=()=>{close();view="einst";go("fwd");render()};return}
   if(!chat.length){box.innerHTML=`<div class="msg a">Hi! Ich kenne deine Noten, Prüfungen, Hausaufgaben und deinen Stundenplan. Frag mich etwas oder sag mir, was ich eintragen soll – z. B. „Mathe HA S. 42 Nr. 3 bis Freitag“.</div><div class="sugg">${SUGG.map(q=>`<button data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>`;
     box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>sendChat(b.dataset.q));return}
   box.innerHTML=chat.map(m=>m.role==="user"?`<div class="msg u">${esc(m.content)}</div>`:`${(m.acts||[]).map(a=>`<div class="act"><span class="ic" style="font-size:16px">check_circle</span>${esc(a)}</div>`).join("")}<div class="msg a ${m.pending&&!m.content?"wait":""}">${m.pending&&!m.content?"Denkt nach …":md(m.content)}</div>`).join("");
@@ -1340,7 +1453,7 @@ const ACT={
   chat:()=>chatSheet(),
   ttPhoto:()=>ttPhotoSheet(),
   goMissing:()=>{view="mehr";sub.mehr="pruef";sub.pruef="offen";go("fwd");render()},
-  saveKey:()=>{const v=($("#apikey")?.value||"").trim();try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}toast(v?"Schlüssel gespeichert":"Schlüssel entfernt")},
+  saveKey:()=>{const v=($("#apikey")?.value||"").trim();if(v&&!/^sk-ant-/.test(v)){toast("Ein Schlüssel beginnt mit sk-ant-");return}try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}render();toast(v?"Schlüssel gespeichert":"Schlüssel entfernt")},
   newExam:()=>examSheet(null),
   newExamFor:()=>examSheet(null,sub.faecher),
   editExam:d=>examSheet(state.exams.find(e=>e.id===d.id)),
@@ -1458,11 +1571,42 @@ const ACT={
     sheet(`<h2>Backup einfügen</h2><label class="field"><span>Backup-Text</span><textarea id="imp" style="height:180px"></textarea></label><div class="actions"><button class="btn text" id="cx">Abbrechen</button><button class="btn filled" id="ok">Wiederherstellen</button></div>`,
     r=>{r.querySelector("#cx").onclick=close;r.querySelector("#ok").onclick=()=>{try{state=migrate(JSON.parse(r.querySelector("#imp").value));save();close();render();toast("Backup wiederhergestellt")}catch(e){toast("Das ist kein gültiges Backup")}}});
   },
-  resetData:()=>{if(!confirm("Wirklich alle Fächer, Noten, Aufgaben und Einstellungen löschen?"))return;state=defaults();state.exams=[];save();render();toast("Alles gelöscht")}
+  resetData:()=>{
+    sheet(`<h2>Alles löschen?</h2><p class="muted" style="margin-top:0">Alle Noten, Prüfungen, Hausaufgaben, Fehlzeiten und dein Stundenplan werden gelöscht. Das kann nicht rückgängig gemacht werden – speichere vorher ein Backup.</p>
+    <label class="chk field"><input type="checkbox" id="rs_keep" checked>Fächer und Einstellungen behalten</label>
+    <div class="actions"><button class="btn text" id="cx">Abbrechen</button><button class="btn danger" id="ok">Endgültig löschen</button></div>`,
+    r=>{r.querySelector("#cx").onclick=close;r.querySelector("#ok").onclick=()=>{
+      const keep=r.querySelector("#rs_keep").checked,d=defaults();
+      if(keep){const sj=state.subjects,se=state.settings,sl=state.timetable.slots;state=d;state.subjects=sj;state.settings=se;state.timetable.slots=sl}else state=d;
+      state.exams=[];applyTheme();save();close();haptic(20);view="cockpit";go("back");render();toast("Alles gelöscht")}});
+  },
+  setOpt:d=>{const k=d.k;let v=d.v;if(String(state.settings[k])===v)return;state.settings[k]=v;haptic(6);applyTheme();save();render()},
+  exportFile:()=>downloadFile(`schulapp-backup-${iso(today())}.json`,JSON.stringify(state,null,1),"application/json"),
+  importFile:()=>{
+    const inp=document.createElement("input");inp.type="file";inp.accept="application/json,.json,.txt";
+    inp.onchange=async()=>{const f=inp.files[0];if(!f)return;
+      try{const j=JSON.parse(await f.text());if(!j||!Array.isArray(j.subjects))throw 0;undoable("Backup geladen",()=>{state=migrate(j);applyTheme()})}
+      catch(e){toast("Diese Datei ist kein Schulapp-Backup")}};
+    inp.click();
+  },
+  repair:()=>{const n=repairData();save();render();toast(n?`${n} ${n===1?"Problem":"Probleme"} behoben`:"Alles in Ordnung – nichts zu reparieren")},
+  reload:()=>location.reload(),
+  checkUpdate:async()=>{
+    toast("Suche nach Update …");
+    try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.update();
+      const res=await fetch(location.pathname.replace(/[^/]*$/,"")+"index.html",{cache:"no-store"});const txt=await res.text();
+      const m=txt.match(/APP_VERSION="([^"]+)"/);
+      if(m&&m[1]!==APP_VERSION){toast(`Version ${m[1]} gefunden`,{label:"Jetzt laden",fn:async()=>{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));location.reload()}})}
+      else toast("Du hast schon die neueste Version")}
+    catch(e){toast(navigator.onLine===false?"Du bist offline":"Update-Prüfung fehlgeschlagen")}
+  },
+  clearCache:async()=>{try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}toast("Zwischenspeicher geleert – lade neu …");setTimeout(()=>location.reload(),900)},
+  testKey:async d=>{toast("Teste Verbindung …");try{await ai("Antworte nur mit: OK",{tier:"quick"});toast("Verbindung klappt")}catch(e){toast(aiErr(e))}}
 };
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-anim="up";render();
+applyTheme();
+view=NAV.some(n=>n[0]===state.settings.start)?state.settings.start:"cockpit";anim="up";render();
 setInterval(()=>{if(view==="cockpit"&&!$("#scrim"))render()},60000);
 })();
 </script>
