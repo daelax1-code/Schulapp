@@ -448,7 +448,7 @@ state=migrate(loadLocal());
 })();
 
 /* ---------- Darstellung: Design, Akzentfarbe, Bewegung ---------- */
-const APP_VERSION="1.5";
+const APP_VERSION="1.6";
 const ACCENTS={
  lila:{n:"Lila",l:["#5B4FC4","#fff","#E5DEFF","#170065","#E4DFF9","#1C192C","#8A4A5F","#FFD9E2","#3A0718"],d:["#C8BFFF","#2C1E93","#4337AB","#E5DEFF","#47435A","#E4DFF9","#FFB0C8","#6E3348","#FFD9E2"]},
  blau:{n:"Blau",l:["#3F5F90","#fff","#D6E3FF","#001B3D","#DAE2F9","#131C2B","#715573","#FBD7FC","#29132D"],d:["#A9C7FF","#0A305F","#264777","#D6E3FF","#3E4759","#DAE2F9","#DEBCDF","#584059","#FBD7FC"]},
@@ -1274,7 +1274,27 @@ function focusSheet(presetSid){
 
 /* ---------- KI-Schicht: Claude-Konto (in Claude) oder eigener API-Schlüssel (installierte App) ---------- */
 const KEY_LS="schulapp.apikey";
-function getKey(){try{return localStorage.getItem(KEY_LS)||""}catch(e){return ""}}
+function getKey(){try{return cleanKey(localStorage.getItem(KEY_LS)||"")}catch(e){return ""}}
+function cleanKey(v){return String(v||"").replace(/[\s"'`\u200B-\u200D\uFEFF]/g,"")}
+const API_MODEL="claude-haiku-5-5";
+/* Eine Anfrage an die Claude API, mit verständlichen Fehlern */
+async function apiCall(key,body,signal){
+  let res;
+  try{res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify(body)})}
+  catch(e){if(e&&e.name==="AbortError")throw e;throw {code:"network",message:String(e&&e.message||e)}}
+  if(res.ok)return res.json();
+  let j=null,raw="";try{raw=await res.text();j=JSON.parse(raw)}catch(_){}
+  const t=j&&j.error&&j.error.type||"",m=j&&j.error&&j.error.message||raw||("HTTP "+res.status);
+  const code=res.status===401||t==="authentication_error"?"bad_key"
+    :res.status===403||t==="permission_error"?"no_permission"
+    :/credit balance|billing|purchase credits/i.test(m)?"no_credit"
+    :res.status===404||t==="not_found_error"?"no_model"
+    :res.status===429||t==="rate_limit_error"?"rate_limited"
+    :res.status===529||t==="overloaded_error"?"overloaded"
+    :res.status===413||t==="request_too_large"?"too_large"
+    :res.status>=500?"server":"api_error";
+  throw {code,status:res.status,message:m};
+}
 function aiReady(){return !!sampleCap||!!getKey()}
 function jpegB64(file,max=1600){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(img.src);res(c.toDataURL("image/jpeg",.85).split(",")[1])};img.onerror=()=>rej({code:"image_rejected"});img.src=URL.createObjectURL(file)})}
 async function ai(input,{tools,image,onText,signal,tier}={}){
@@ -1288,16 +1308,23 @@ async function ai(input,{tools,image,onText,signal,tier}={}){
   const key=getKey();if(!key)throw {code:"no_ai"};
   const msgs=(typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content})));
   if(image){const b64=await jpegB64(image);const last=msgs[msgs.length-1];last.content=[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:last.content}]}
+  // Die API verlangt: erste Nachricht vom Nutzer, keine leeren Texte, letzte Nachricht vom Nutzer
+  while(msgs.length&&msgs[0].role!=="user")msgs.shift();
+  msgs.forEach(m=>{if(typeof m.content==="string"&&!m.content.trim())m.content="…"});
+  if(!msgs.length||msgs[msgs.length-1].role!=="user")throw {code:"api_error",message:"Keine Frage zum Senden"};
+  // Haiku 5.5 denkt standardmäßig mit – Denk-Tokens zählen zu max_tokens, daher großzügig
+  const effort=image?"medium":"low";
   for(let round=0;round<6;round++){
-    const body={model:"claude-haiku-5-5",max_tokens:2000,messages:msgs};
+    const body={model:API_MODEL,max_tokens:image?16000:8000,output_config:{effort},messages:msgs};
     if(tools)body.tools=tools.map(t=>({name:t.name,description:t.description,input_schema:t.inputSchema||{type:"object",properties:{}}}));
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify(body)});
-    if(!res.ok){throw {code:res.status===401?"bad_key":res.status===429?"rate_limited":"api_error",message:await res.text().catch(()=>"")}}
-    const data=await res.json();
+    const data=await apiCall(key,body,signal);
     msgs.push({role:"assistant",content:data.content});
-    const text=data.content.filter(c=>c.type==="text").map(c=>c.text).join("");
-    const uses=data.content.filter(c=>c.type==="tool_use");
-    if(!uses.length||data.stop_reason!=="tool_use"){onText&&onText({text});return text}
+    const text=(data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+    const uses=(data.content||[]).filter(c=>c.type==="tool_use");
+    if(data.stop_reason==="refusal")throw {code:"refusal",message:text};
+    if(!uses.length||data.stop_reason!=="tool_use"){
+      if(!text.trim()&&data.stop_reason==="max_tokens")throw {code:"max_tokens"};
+      onText&&onText({text});return text}
     if(text&&onText)onText({text});
     const results=[];
     for(const u of uses){let out;try{const t=tools.find(x=>x.name===u.name);if(!t)throw new Error("Unbekanntes Tool");out=await t.execute(u.input||{},{signal})}catch(e){out="Error: "+(e&&e.message||e)}
@@ -1306,7 +1333,7 @@ async function ai(input,{tools,image,onText,signal,tier}={}){
   }
   throw {code:"api_error",message:"Zu viele Schritte"};
 }
-function aiErr(e){const c=e&&e.code;return c==="no_ai"?"Richte zuerst den Assistenten ein (Einstellungen → KI-Assistent).":c==="bad_key"?"Der API-Schlüssel stimmt nicht. Prüf ihn in den Einstellungen.":c==="not_granted"?"Du hast die KI für diese Seite nicht erlaubt.":c==="rate_limited"?"Gerade zu viele Anfragen – versuch es in einer Minute nochmal.":c==="images_unavailable"?"Bilder kann die KI hier gerade nicht lesen.":c==="cancelled"||(e&&e.name==="AbortError")?"Gestoppt.":navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Das hat nicht geklappt. Versuch es nochmal."}
+function aiErr(e){const c=e&&e.code;return c==="no_ai"?"Richte zuerst den Assistenten ein (Einstellungen → KI-Assistent).":c==="bad_key"?"Der API-Schlüssel wird nicht akzeptiert – er ist falsch kopiert, gelöscht oder deaktiviert.":c==="no_credit"?"Auf deinem API-Konto ist kein Guthaben. Lade unter console.anthropic.com → Billing etwas auf.":c==="no_permission"?"Dieser Schlüssel hat keine Berechtigung für Anfragen.":c==="no_model"?"Das KI-Modell ist für deinen Schlüssel nicht verfügbar.":c==="overloaded"?"Die KI ist gerade überlastet – versuch es gleich nochmal.":c==="server"?"Fehler bei Anthropic – versuch es gleich nochmal.":c==="network"?(navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Keine Verbindung zu api.anthropic.com. Liegt es an VPN, Werbeblocker oder Schul-WLAN?"):c==="max_tokens"?"Die Antwort wurde zu lang und abgeschnitten. Frag etwas kürzer.":c==="refusal"?"Dabei kann die KI nicht helfen.":c==="too_large"?"Die Anfrage ist zu groß (z. B. das Foto).":c==="not_granted"?"Du hast die KI für diese Seite nicht erlaubt.":c==="rate_limited"?"Gerade zu viele Anfragen – versuch es in einer Minute nochmal.":c==="images_unavailable"?"Bilder kann die KI hier gerade nicht lesen.":c==="cancelled"||(e&&e.name==="AbortError")?"Gestoppt.":navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Das hat nicht geklappt"+(e&&e.message?": "+String(e.message).slice(0,140):". Versuch es nochmal.")}
 function findSubj(q){
   const x=String(q||"").trim().toLowerCase();if(!x)return null;
   const S=state.subjects;
@@ -1349,6 +1376,41 @@ function makeTools(log){
     {name:"termin_eintragen",description:"Trägt einen sonstigen Termin ein (Ausflug, Elternabend …).",inputSchema:{type:"object",properties:{titel:{type:"string"},datum:{type:"string"},uhrzeit:{type:"string",description:"HH:MM, optional"}},required:["titel","datum"]},
       execute:i=>{const v={id:uid(),title:String(i.titel),date:dt(i.datum),time:String(i.uhrzeit||"")};state.events.push(v);done("Termin eingetragen: "+v.title);return {ok:true}}}
   ];
+}
+
+/* ---------- Schlüssel-Diagnose: prüft Schritt für Schritt, woran es liegt ---------- */
+function keyDiag(){
+  const key=getKey();
+  sheet(`<h2>Verbindung testen</h2><div class="list" id="dg"></div><div class="info" id="dg_hint" hidden></div><div class="actions"><button class="btn filled" id="cx">Fertig</button></div>`,async r=>{
+    r.querySelector("#cx").onclick=close;
+    const box=r.querySelector("#dg"),hint=r.querySelector("#dg_hint");
+    const step=(ic,t,s,cls)=>{box.insertAdjacentHTML("beforeend",`<div class="item"><span class="ic f" style="color:${cls==="ok"?"var(--ok)":cls==="bad"?"var(--error)":"var(--on-var)"}">${ic}</span><div class="main"><div class="t">${t}</div>${s?`<div class="s" style="white-space:normal">${esc(s)}</div>`:""}</div></div>`)};
+    const fail=(t,s,h)=>{step("cancel",t,s,"bad");hint.hidden=false;hint.innerHTML=h};
+    if(!key)return fail("Kein Schlüssel gespeichert","","Füge deinen Schlüssel ein und tippe auf Speichern.");
+    if(!/^sk-ant-/.test(key)||key.length<40)return fail("Schlüssel sieht falsch aus",`Beginnt mit „${key.slice(0,7)}…“, ${key.length} Zeichen`,"Ein Anthropic-Schlüssel beginnt mit <b>sk-ant-</b> und ist über 100 Zeichen lang. Kopiere ihn neu aus console.anthropic.com → API Keys.");
+    step("check_circle","Schlüssel-Format stimmt",`${key.slice(0,10)}…${key.slice(-4)} · ${key.length} Zeichen`,"ok");
+    if(navigator.onLine===false)return fail("Kein Internet","","Verbinde dich mit dem Internet und teste nochmal.");
+    step("progress_activity","Frage Anthropic …","");
+    try{
+      const d=await apiCall(key,{model:API_MODEL,max_tokens:2000,output_config:{effort:"low"},messages:[{role:"user",content:"Antworte nur mit: OK"}]});
+      box.lastElementChild.remove();
+      step("check_circle","Server erreicht, Schlüssel gültig","","ok");
+      step("check_circle","Guthaben vorhanden, Modell antwortet",`${API_MODEL} · Antwort: ${(d.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("").trim().slice(0,30)||"(leer)"}`,"ok");
+      hint.hidden=false;hint.innerHTML="Alles klappt – der Assistent ist bereit.";
+    }catch(e){
+      box.lastElementChild.remove();
+      const raw=e.message?` (${e.status?e.status+": ":""}${String(e.message).slice(0,160)})`:"";
+      const H={
+        network:"Die Anfrage kommt nicht bei Anthropic an. Häufige Gründe: ein <b>VPN</b> oder <b>Werbeblocker</b> (z. B. in der Browser-Einstellung), das <b>Schul-WLAN</b> sperrt die Adresse, oder kein Internet. Teste es einmal im mobilen Netz oder mit ausgeschaltetem VPN.",
+        bad_key:"Der Schlüssel wird abgelehnt. Erstelle unter console.anthropic.com → API Keys einen neuen und füge ihn hier komplett ein.",
+        no_credit:"Der Schlüssel ist gültig, aber das Konto hat kein Guthaben. Unter console.anthropic.com → <b>Billing</b> ein paar Euro aufladen. Es kann ein paar Minuten dauern, bis es wirkt.",
+        no_permission:"Der Schlüssel darf keine Anfragen stellen. Prüfe in der Console, ob er aktiv ist und zum richtigen Workspace gehört.",
+        no_model:"Das Modell ist für dein Konto nicht freigeschaltet. Prüfe in der Console unter Limits, ob Modelle eingeschränkt sind.",
+        rate_limited:"Zu viele Anfragen oder dein Ausgabenlimit ist erreicht. Prüfe in der Console unter <b>Limits</b> dein Monatslimit.",
+        overloaded:"Anthropic ist gerade überlastet. Probier es in ein paar Minuten nochmal.",server:"Fehler bei Anthropic. Probier es in ein paar Minuten nochmal."};
+      fail(e.code==="network"?"Server nicht erreichbar":e.code==="bad_key"?"Schlüssel ungültig":e.code==="no_credit"?"Kein Guthaben":"Fehler: "+(e.code||"unbekannt"),raw,H[e.code]||("Unerwartete Antwort von Anthropic"+esc(raw)+". Schick mir diesen Text, dann schaue ich es mir an."));
+    }
+  });
 }
 
 /* ---------- Assistent-Chat ---------- */
@@ -1453,7 +1515,7 @@ const ACT={
   chat:()=>chatSheet(),
   ttPhoto:()=>ttPhotoSheet(),
   goMissing:()=>{view="mehr";sub.mehr="pruef";sub.pruef="offen";go("fwd");render()},
-  saveKey:()=>{const v=($("#apikey")?.value||"").trim();if(v&&!/^sk-ant-/.test(v)){toast("Ein Schlüssel beginnt mit sk-ant-");return}try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}render();toast(v?"Schlüssel gespeichert":"Schlüssel entfernt")},
+  saveKey:()=>{const v=cleanKey($("#apikey")?.value);if(v&&!/^sk-ant-/.test(v)){toast(/^sk-/.test(v)?"Das ist kein Anthropic-Schlüssel – er beginnt mit sk-ant-":"Ein Schlüssel beginnt mit sk-ant-");return}if(v&&v.length<40){toast("Der Schlüssel ist zu kurz – wurde er ganz kopiert?");return}try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}render();toast(v?"Schlüssel gespeichert":"Schlüssel entfernt")},
   newExam:()=>examSheet(null),
   newExamFor:()=>examSheet(null,sub.faecher),
   editExam:d=>examSheet(state.exams.find(e=>e.id===d.id)),
@@ -1601,7 +1663,7 @@ const ACT={
     catch(e){toast(navigator.onLine===false?"Du bist offline":"Update-Prüfung fehlgeschlagen")}
   },
   clearCache:async()=>{try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}toast("Zwischenspeicher geleert – lade neu …");setTimeout(()=>location.reload(),900)},
-  testKey:async d=>{toast("Teste Verbindung …");try{await ai("Antworte nur mit: OK",{tier:"quick"});toast("Verbindung klappt")}catch(e){toast(aiErr(e))}}
+  testKey:()=>keyDiag()
 };
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
