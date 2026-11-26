@@ -448,7 +448,7 @@ state=migrate(loadLocal());
 })();
 
 /* ---------- Darstellung: Design, Akzentfarbe, Bewegung ---------- */
-const APP_VERSION="1.6";
+const APP_VERSION="1.7";
 const ACCENTS={
  lila:{n:"Lila",l:["#5B4FC4","#fff","#E5DEFF","#170065","#E4DFF9","#1C192C","#8A4A5F","#FFD9E2","#3A0718"],d:["#C8BFFF","#2C1E93","#4337AB","#E5DEFF","#47435A","#E4DFF9","#FFB0C8","#6E3348","#FFD9E2"]},
  blau:{n:"Blau",l:["#3F5F90","#fff","#D6E3FF","#001B3D","#DAE2F9","#131C2B","#715573","#FBD7FC","#29132D"],d:["#A9C7FF","#0A305F","#264777","#D6E3FF","#3E4759","#DAE2F9","#DEBCDF","#584059","#FBD7FC"]},
@@ -1062,8 +1062,8 @@ function vEinst(){
       ${row("add","Ferien hinzufügen","Vorausgefüllt mit bayerischen Terminen – bitte mit dem Schulkalender abgleichen","",'data-act="newHol"')}
     </section>
     <section class="set-group"><h3>KI-Assistent</h3>
-      ${sampleCap?row("auto_awesome","Verbunden","Läuft über dein Claude-Konto – nichts einzurichten",'<span class="dot-ok" aria-hidden="true"></span>'):`<div class="set-card"><p class="small muted" style="margin-top:0">In der installierten App braucht der Assistent einen eigenen API-Schlüssel von console.anthropic.com. Jede Frage kostet ein paar Zehntel Cent. Der Schlüssel bleibt nur auf diesem Gerät.</p>
-      <label class="field"><span>API-Schlüssel ${getKey()?'<span class="dot-ok" aria-label="gespeichert"></span>':""}</span><input type="password" id="apikey" autocomplete="off" value="${esc(getKey())}" placeholder="sk-ant-…"></label>
+      ${sampleCap?row("auto_awesome","Verbunden","Läuft über dein Claude-Konto – nichts einzurichten",'<span class="dot-ok" aria-hidden="true"></span>'):`<div class="set-card"><p class="small muted" style="margin-top:0">In der installierten App braucht der Assistent einen eigenen API-Schlüssel – entweder von <b>Google AI Studio</b> (aistudio.google.com, beginnt mit AIza) oder von <b>Anthropic</b> (console.anthropic.com, beginnt mit sk-ant-). Die App erkennt automatisch, welcher es ist. Der Schlüssel bleibt nur auf diesem Gerät.</p>
+      <label class="field"><span>API-Schlüssel ${getKey()?`· ${provider()==="gemini"?"Google Gemini":provider()==="anthropic"?"Anthropic Claude":"unbekannt"} <span class="dot-ok" aria-label="gespeichert"></span>`:""}</span><input type="password" id="apikey" autocomplete="off" value="${esc(getKey())}" placeholder="AIza… oder sk-ant-…"></label>
       <div class="actions" style="justify-content:flex-start;margin:0"><button class="btn tonal" data-act="saveKey">Speichern</button>${getKey()?`<button class="btn text" data-act="testKey">Verbindung testen</button>`:""}</div></div>`}
     </section>
     <section class="set-group"><h3>Daten</h3>
@@ -1277,6 +1277,68 @@ const KEY_LS="schulapp.apikey";
 function getKey(){try{return cleanKey(localStorage.getItem(KEY_LS)||"")}catch(e){return ""}}
 function cleanKey(v){return String(v||"").replace(/[\s"'`\u200B-\u200D\uFEFF]/g,"")}
 const API_MODEL="claude-haiku-5-5";
+const GEMINI_MODELS=["gemini-flash-latest","gemini-3.8-flash","gemini-3.6-flash","gemini-3.5-flash-lite"];
+const GM_LS="schulapp.gmodel";
+function provider(k){k=k||getKey();return /^AIza/.test(k)?"gemini":/^sk-ant-/.test(k)?"anthropic":"unknown"}
+function keyIssue(k){
+  const p=provider(k);
+  if(p==="anthropic")return k.length<40?"Der Anthropic-Schlüssel ist zu kurz – wurde er ganz kopiert?":"";
+  if(p==="gemini")return k.length!==39?`Ein Google-Schlüssel hat genau 39 Zeichen, dieser hat ${k.length}. Wurde er ganz kopiert?`:"";
+  return /^sk-/.test(k)?"Das ist ein OpenAI-Schlüssel – unterstützt werden Anthropic (sk-ant-…) und Google Gemini (AIza…).":"Unbekannter Schlüssel. Unterstützt werden Anthropic (beginnt mit sk-ant-) und Google Gemini (beginnt mit AIza).";
+}
+/* Google Gemini: eine Anfrage, mit verständlichen Fehlern und Modell-Rückfall */
+async function geminiCall(key,body,signal){
+  let saved="";try{saved=localStorage.getItem(GM_LS)||""}catch(e){}
+  const models=[...new Set([saved,...GEMINI_MODELS].filter(Boolean))];
+  let last=null;
+  for(const m of models){
+    let res;
+    try{res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:"POST",signal,headers:{"content-type":"application/json","x-goog-api-key":key},body:JSON.stringify(body)})}
+    catch(e){if(e&&e.name==="AbortError")throw e;throw {code:"network",message:String(e&&e.message||e)}}
+    if(res.ok){try{localStorage.setItem(GM_LS,m)}catch(e){}const j=await res.json();j._model=m;return j}
+    let j=null,raw="";try{raw=await res.text();j=JSON.parse(raw)}catch(_){}
+    const st=j&&j.error&&j.error.status||"",msg=j&&j.error&&j.error.message||raw||("HTTP "+res.status);
+    if(res.status===404||st==="NOT_FOUND"){last={code:"no_model",status:404,message:msg};continue}
+    const code=/api key not valid|API_KEY_INVALID|api key expired/i.test(msg)?"bad_key"
+      :/referer|referrer|blocked|API_KEY_HTTP_REFERRER|android|ios/i.test(msg)&&res.status===403?"key_restricted"
+      :/has not been used|is disabled|SERVICE_DISABLED|enable it/i.test(msg)?"api_disabled"
+      :/location is not supported|User location/i.test(msg)?"region"
+      :res.status===403||st==="PERMISSION_DENIED"?"no_permission"
+      :res.status===429||st==="RESOURCE_EXHAUSTED"?"quota"
+      :res.status===503||st==="UNAVAILABLE"?"overloaded"
+      :res.status>=500?"server":res.status===400&&/billing|free tier/i.test(msg)?"no_credit":"api_error";
+    throw {code,status:res.status,message:msg};
+  }
+  throw last||{code:"no_model"};
+}
+async function aiGemini(key,input,{tools,image,onText,signal}){
+  const turns=typeof input==="string"?[{role:"user",content:input}]:input;
+  const contents=turns.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:String(m.content||"…")}]}));
+  while(contents.length&&contents[0].role!=="user")contents.shift();
+  if(image){const b64=await jpegB64(image);contents[contents.length-1].parts.unshift({inlineData:{mimeType:"image/jpeg",data:b64}})}
+  const decl=tools&&tools.map(t=>({name:t.name,description:t.description,parameters:t.inputSchema||{type:"object",properties:{}}}));
+  for(let round=0;round<6;round++){
+    const body={contents,generationConfig:{maxOutputTokens:image?16384:8192}};
+    if(decl)body.tools=[{functionDeclarations:decl}];
+    const d=await geminiCall(key,body,signal);
+    if(d.promptFeedback&&d.promptFeedback.blockReason)throw {code:"refusal"};
+    const c=d.candidates&&d.candidates[0];if(!c)throw {code:"api_error",message:"Leere Antwort"};
+    const parts=(c.content&&c.content.parts)||[];
+    contents.push({role:"model",parts});
+    const text=parts.filter(x=>x.text&&!x.thought).map(x=>x.text).join("");
+    const calls=parts.filter(x=>x.functionCall);
+    if(!calls.length){
+      if(!text.trim()&&c.finishReason==="MAX_TOKENS")throw {code:"max_tokens"};
+      if(!text.trim()&&/SAFETY|PROHIBITED|BLOCKLIST|RECITATION/.test(c.finishReason||""))throw {code:"refusal"};
+      onText&&onText({text});return text}
+    if(text&&onText)onText({text});
+    const out=[];
+    for(const x of calls){const fc=x.functionCall;let r;try{const t=tools.find(y=>y.name===fc.name);if(!t)throw new Error("Unbekanntes Tool");r=await t.execute(fc.args||{},{signal})}catch(e){r={error:String(e&&e.message||e)}}
+      const fr={name:fc.name,response:(r&&typeof r==="object"&&!Array.isArray(r))?r:{result:r}};if(fc.id)fr.id=fc.id;out.push({functionResponse:fr})}
+    contents.push({role:"user",parts:out});
+  }
+  throw {code:"api_error",message:"Zu viele Schritte"};
+}
 /* Eine Anfrage an die Claude API, mit verständlichen Fehlern */
 async function apiCall(key,body,signal){
   let res;
@@ -1306,6 +1368,8 @@ async function ai(input,{tools,image,onText,signal,tier}={}){
     return (await sampleCap(input,opt)).text;
   }
   const key=getKey();if(!key)throw {code:"no_ai"};
+  if(provider(key)==="gemini")return aiGemini(key,input,{tools,image,onText,signal});
+  if(provider(key)!=="anthropic")throw {code:"bad_format"};
   const msgs=(typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content})));
   if(image){const b64=await jpegB64(image);const last=msgs[msgs.length-1];last.content=[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},{type:"text",text:last.content}]}
   // Die API verlangt: erste Nachricht vom Nutzer, keine leeren Texte, letzte Nachricht vom Nutzer
@@ -1333,7 +1397,7 @@ async function ai(input,{tools,image,onText,signal,tier}={}){
   }
   throw {code:"api_error",message:"Zu viele Schritte"};
 }
-function aiErr(e){const c=e&&e.code;return c==="no_ai"?"Richte zuerst den Assistenten ein (Einstellungen → KI-Assistent).":c==="bad_key"?"Der API-Schlüssel wird nicht akzeptiert – er ist falsch kopiert, gelöscht oder deaktiviert.":c==="no_credit"?"Auf deinem API-Konto ist kein Guthaben. Lade unter console.anthropic.com → Billing etwas auf.":c==="no_permission"?"Dieser Schlüssel hat keine Berechtigung für Anfragen.":c==="no_model"?"Das KI-Modell ist für deinen Schlüssel nicht verfügbar.":c==="overloaded"?"Die KI ist gerade überlastet – versuch es gleich nochmal.":c==="server"?"Fehler bei Anthropic – versuch es gleich nochmal.":c==="network"?(navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Keine Verbindung zu api.anthropic.com. Liegt es an VPN, Werbeblocker oder Schul-WLAN?"):c==="max_tokens"?"Die Antwort wurde zu lang und abgeschnitten. Frag etwas kürzer.":c==="refusal"?"Dabei kann die KI nicht helfen.":c==="too_large"?"Die Anfrage ist zu groß (z. B. das Foto).":c==="not_granted"?"Du hast die KI für diese Seite nicht erlaubt.":c==="rate_limited"?"Gerade zu viele Anfragen – versuch es in einer Minute nochmal.":c==="images_unavailable"?"Bilder kann die KI hier gerade nicht lesen.":c==="cancelled"||(e&&e.name==="AbortError")?"Gestoppt.":navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Das hat nicht geklappt"+(e&&e.message?": "+String(e.message).slice(0,140):". Versuch es nochmal.")}
+function aiErr(e){const c=e&&e.code;return c==="bad_format"?"Der gespeicherte Schlüssel hat ein unbekanntes Format.":c==="key_restricted"?"Dein Google-Schlüssel ist auf bestimmte Websites oder Apps beschränkt. Entferne die Beschränkung in der Google Cloud Console.":c==="api_disabled"?"Für diesen Google-Schlüssel ist die Gemini-API nicht aktiviert. Erstelle den Schlüssel am besten in Google AI Studio.":c==="quota"?"Dein Gemini-Kontingent ist aufgebraucht – warte etwas oder prüfe die Limits in AI Studio.":c==="region"?"Gemini ist in deiner Region für diesen Schlüssel nicht verfügbar.":c==="no_ai"?"Richte zuerst den Assistenten ein (Einstellungen → KI-Assistent).":c==="bad_key"?"Der API-Schlüssel wird nicht akzeptiert – er ist falsch kopiert, gelöscht oder deaktiviert.":c==="no_credit"?"Auf deinem API-Konto ist kein Guthaben. Lade unter console.anthropic.com → Billing etwas auf.":c==="no_permission"?"Dieser Schlüssel hat keine Berechtigung für Anfragen.":c==="no_model"?"Das KI-Modell ist für deinen Schlüssel nicht verfügbar.":c==="overloaded"?"Die KI ist gerade überlastet – versuch es gleich nochmal.":c==="server"?"Fehler bei Anthropic – versuch es gleich nochmal.":c==="network"?(navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Keine Verbindung zu api.anthropic.com. Liegt es an VPN, Werbeblocker oder Schul-WLAN?"):c==="max_tokens"?"Die Antwort wurde zu lang und abgeschnitten. Frag etwas kürzer.":c==="refusal"?"Dabei kann die KI nicht helfen.":c==="too_large"?"Die Anfrage ist zu groß (z. B. das Foto).":c==="not_granted"?"Du hast die KI für diese Seite nicht erlaubt.":c==="rate_limited"?"Gerade zu viele Anfragen – versuch es in einer Minute nochmal.":c==="images_unavailable"?"Bilder kann die KI hier gerade nicht lesen.":c==="cancelled"||(e&&e.name==="AbortError")?"Gestoppt.":navigator.onLine===false?"Du bist offline – der Assistent braucht Internet.":"Das hat nicht geklappt"+(e&&e.message?": "+String(e.message).slice(0,140):". Versuch es nochmal.")}
 function findSubj(q){
   const x=String(q||"").trim().toLowerCase();if(!x)return null;
   const S=state.subjects;
@@ -1380,35 +1444,43 @@ function makeTools(log){
 
 /* ---------- Schlüssel-Diagnose: prüft Schritt für Schritt, woran es liegt ---------- */
 function keyDiag(){
-  const key=getKey();
+  const key=getKey(),pv=provider(key),name=pv==="gemini"?"Google":"Anthropic";
   sheet(`<h2>Verbindung testen</h2><div class="list" id="dg"></div><div class="info" id="dg_hint" hidden></div><div class="actions"><button class="btn filled" id="cx">Fertig</button></div>`,async r=>{
     r.querySelector("#cx").onclick=close;
     const box=r.querySelector("#dg"),hint=r.querySelector("#dg_hint");
     const step=(ic,t,s,cls)=>{box.insertAdjacentHTML("beforeend",`<div class="item"><span class="ic f" style="color:${cls==="ok"?"var(--ok)":cls==="bad"?"var(--error)":"var(--on-var)"}">${ic}</span><div class="main"><div class="t">${t}</div>${s?`<div class="s" style="white-space:normal">${esc(s)}</div>`:""}</div></div>`)};
     const fail=(t,s,h)=>{step("cancel",t,s,"bad");hint.hidden=false;hint.innerHTML=h};
     if(!key)return fail("Kein Schlüssel gespeichert","","Füge deinen Schlüssel ein und tippe auf Speichern.");
-    if(!/^sk-ant-/.test(key)||key.length<40)return fail("Schlüssel sieht falsch aus",`Beginnt mit „${key.slice(0,7)}…“, ${key.length} Zeichen`,"Ein Anthropic-Schlüssel beginnt mit <b>sk-ant-</b> und ist über 100 Zeichen lang. Kopiere ihn neu aus console.anthropic.com → API Keys.");
-    step("check_circle","Schlüssel-Format stimmt",`${key.slice(0,10)}…${key.slice(-4)} · ${key.length} Zeichen`,"ok");
+    const iss=keyIssue(key);
+    if(iss)return fail("Schlüssel sieht falsch aus",`Beginnt mit „${key.slice(0,6)}…“, ${key.length} Zeichen`,esc(iss));
+    step("check_circle",`${pv==="gemini"?"Google-Gemini":"Anthropic"}-Schlüssel erkannt`,`${key.slice(0,8)}…${key.slice(-4)} · ${key.length} Zeichen`,"ok");
     if(navigator.onLine===false)return fail("Kein Internet","","Verbinde dich mit dem Internet und teste nochmal.");
-    step("progress_activity","Frage Anthropic …","");
+    step("progress_activity",`Frage ${name} …`,"");
     try{
-      const d=await apiCall(key,{model:API_MODEL,max_tokens:2000,output_config:{effort:"low"},messages:[{role:"user",content:"Antworte nur mit: OK"}]});
+      const t=await ai("Antworte nur mit: OK",{tier:"quick"});
       box.lastElementChild.remove();
       step("check_circle","Server erreicht, Schlüssel gültig","","ok");
-      step("check_circle","Guthaben vorhanden, Modell antwortet",`${API_MODEL} · Antwort: ${(d.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("").trim().slice(0,30)||"(leer)"}`,"ok");
+      let gm="";try{gm=localStorage.getItem(GM_LS)||""}catch(e){}
+      step("check_circle","Modell antwortet",`${pv==="gemini"?gm:API_MODEL} · Antwort: ${String(t||"").trim().slice(0,30)||"(leer)"}`,"ok");
       hint.hidden=false;hint.innerHTML="Alles klappt – der Assistent ist bereit.";
     }catch(e){
       box.lastElementChild.remove();
-      const raw=e.message?` (${e.status?e.status+": ":""}${String(e.message).slice(0,160)})`:"";
+      const raw=e.message?` (${e.status?e.status+": ":""}${String(e.message).slice(0,180)})`:"";
+      const G=pv==="gemini";
       const H={
-        network:"Die Anfrage kommt nicht bei Anthropic an. Häufige Gründe: ein <b>VPN</b> oder <b>Werbeblocker</b> (z. B. in der Browser-Einstellung), das <b>Schul-WLAN</b> sperrt die Adresse, oder kein Internet. Teste es einmal im mobilen Netz oder mit ausgeschaltetem VPN.",
-        bad_key:"Der Schlüssel wird abgelehnt. Erstelle unter console.anthropic.com → API Keys einen neuen und füge ihn hier komplett ein.",
-        no_credit:"Der Schlüssel ist gültig, aber das Konto hat kein Guthaben. Unter console.anthropic.com → <b>Billing</b> ein paar Euro aufladen. Es kann ein paar Minuten dauern, bis es wirkt.",
-        no_permission:"Der Schlüssel darf keine Anfragen stellen. Prüfe in der Console, ob er aktiv ist und zum richtigen Workspace gehört.",
-        no_model:"Das Modell ist für dein Konto nicht freigeschaltet. Prüfe in der Console unter Limits, ob Modelle eingeschränkt sind.",
+        network:`Die Anfrage kommt nicht bei ${name} an. Häufige Gründe: ein <b>VPN</b> oder <b>Werbeblocker</b>, das <b>Schul-WLAN</b> sperrt die Adresse, oder kein Internet. Teste es einmal im mobilen Netz oder ohne VPN.`,
+        bad_key:G?"Google lehnt den Schlüssel ab. Erstelle in <b>aistudio.google.com</b> → „Get API key“ einen neuen und füge ihn komplett ein.":"Der Schlüssel wird abgelehnt. Erstelle unter console.anthropic.com → API Keys einen neuen und füge ihn komplett ein.",
+        key_restricted:"Der Schlüssel ist in der Google Cloud Console auf bestimmte Websites oder Apps beschränkt. Unter APIs &amp; Dienste → Anmeldedaten → dein Schlüssel → „Anwendungseinschränkungen“ auf <b>Keine</b> stellen oder deine GitHub-Adresse als Website eintragen.",
+        api_disabled:"Für das Google-Projekt dieses Schlüssels ist die <b>Generative Language API</b> nicht aktiviert. Am einfachsten: neuen Schlüssel direkt in <b>aistudio.google.com</b> erstellen – dort ist alles schon eingeschaltet.",
+        quota:"Das Kontingent deines Google-Schlüssels ist aufgebraucht. Warte ein paar Minuten bzw. bis morgen, oder prüfe die Limits in AI Studio.",
+        region:"Gemini ist mit diesem Schlüssel in deiner Region nicht verfügbar.",
+        no_credit:G?"Für dieses Modell verlangt Google ein Abrechnungskonto. Prüfe in AI Studio, ob dein Schlüssel zu einem Projekt mit Abrechnung gehört.":"Der Schlüssel ist gültig, aber das Konto hat kein Guthaben. Unter console.anthropic.com → <b>Billing</b> ein paar Euro aufladen. Es kann ein paar Minuten dauern, bis es wirkt.",
+        no_permission:G?"Der Schlüssel darf die Gemini-API nicht nutzen. Prüfe in der Google Cloud Console die API-Einschränkungen des Schlüssels.":"Der Schlüssel darf keine Anfragen stellen. Prüfe in der Console, ob er aktiv ist und zum richtigen Workspace gehört.",
+        no_model:"Kein passendes KI-Modell für deinen Schlüssel gefunden.",
         rate_limited:"Zu viele Anfragen oder dein Ausgabenlimit ist erreicht. Prüfe in der Console unter <b>Limits</b> dein Monatslimit.",
-        overloaded:"Anthropic ist gerade überlastet. Probier es in ein paar Minuten nochmal.",server:"Fehler bei Anthropic. Probier es in ein paar Minuten nochmal."};
-      fail(e.code==="network"?"Server nicht erreichbar":e.code==="bad_key"?"Schlüssel ungültig":e.code==="no_credit"?"Kein Guthaben":"Fehler: "+(e.code||"unbekannt"),raw,H[e.code]||("Unerwartete Antwort von Anthropic"+esc(raw)+". Schick mir diesen Text, dann schaue ich es mir an."));
+        overloaded:`${name} ist gerade überlastet. Probier es in ein paar Minuten nochmal.`,server:`Fehler bei ${name}. Probier es in ein paar Minuten nochmal.`};
+      const T={network:"Server nicht erreichbar",bad_key:"Schlüssel ungültig",no_credit:"Kein Guthaben",key_restricted:"Schlüssel eingeschränkt",api_disabled:"Gemini-API nicht aktiviert",quota:"Kontingent aufgebraucht"};
+      fail(T[e.code]||("Fehler: "+(e.code||"unbekannt")),raw,H[e.code]||(`Unerwartete Antwort von ${name}`+esc(raw)+". Schick mir einen Screenshot davon, dann schaue ich es mir an."));
     }
   });
 }
@@ -1515,7 +1587,7 @@ const ACT={
   chat:()=>chatSheet(),
   ttPhoto:()=>ttPhotoSheet(),
   goMissing:()=>{view="mehr";sub.mehr="pruef";sub.pruef="offen";go("fwd");render()},
-  saveKey:()=>{const v=cleanKey($("#apikey")?.value);if(v&&!/^sk-ant-/.test(v)){toast(/^sk-/.test(v)?"Das ist kein Anthropic-Schlüssel – er beginnt mit sk-ant-":"Ein Schlüssel beginnt mit sk-ant-");return}if(v&&v.length<40){toast("Der Schlüssel ist zu kurz – wurde er ganz kopiert?");return}try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}render();toast(v?"Schlüssel gespeichert":"Schlüssel entfernt")},
+  saveKey:()=>{const v=cleanKey($("#apikey")?.value);const iss=v&&keyIssue(v);if(iss){toast(iss);return}try{localStorage.removeItem(GM_LS)}catch(e){}try{if(v)localStorage.setItem(KEY_LS,v);else localStorage.removeItem(KEY_LS)}catch(e){}render();toast(v?(provider(v)==="gemini"?"Google-Gemini-Schlüssel gespeichert":"Anthropic-Schlüssel gespeichert"):"Schlüssel entfernt")},
   newExam:()=>examSheet(null),
   newExamFor:()=>examSheet(null,sub.faecher),
   editExam:d=>examSheet(state.exams.find(e=>e.id===d.id)),
